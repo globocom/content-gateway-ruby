@@ -1,0 +1,58 @@
+PATH
+  remote: .
+  specs:
+    content_gateway (0.0.1)
+      activesupport
+      json
+      rest-client
+
+GEM
+  remote: http://rubygems.globoi.com/
+  remote: http://rubygems.globoi.com/proxy/
+  specs:
+    activesupport (4.0.0)
+      i18n (~> 0.6, >= 0.6.4)
+      minitest (~> 4.2)
+      multi_json (~> 1.3)
+      thread_safe (~> 0.1)
+      tzinfo (~> 0.3.37)
+    atomic (1.1.10)
+    columnize (0.3.6)
+    debugger (1.6.1)
+      columnize (>= 0.3.1)
+      debugger-linecache (~> 1.2.0)
+      debugger-ruby_core_source (~> 1.2.3)
+    debugger-linecache (1.2.0)
+    debugger-ruby_core_source (1.2.3)
+    diff-lcs (1.2.4)
+    i18n (0.6.4)
+    json (1.8.0)
+    mime-types (1.23)
+    minitest (4.7.5)
+    multi_json (1.7.7)
+    rest-client (1.6.7)
+      mime-types (>= 1.16)
+    rspec (2.14.1)
+      rspec-core (~> 2.14.0)
+      rspec-expectations (~> 2.14.0)
+      rspec-mocks (~> 2.14.0)
+    rspec-core (2.14.3)
+    rspec-expectations (2.14.0)
+      diff-lcs (>= 1.1.3, < 2.0)
+    rspec-mocks (2.14.1)
+    simplecov (0.7.1)
+      multi_json (~> 1.0)
+      simplecov-html (~> 0.7.1)
+    simplecov-html (0.7.1)
+    thread_safe (0.1.2)
+      atomic
+    tzinfo (0.3.37)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  content_gateway!
+  debugger
+  rspec (>= 2.3.0)
+  simplecov (>= 0.7.1)
