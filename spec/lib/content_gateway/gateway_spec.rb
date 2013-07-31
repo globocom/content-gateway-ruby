@@ -25,6 +25,10 @@ describe ContentGateway::Gateway do
     {"a|b" => 1, name: "a|b|c"}
   end
 
+  let :headers do
+    {key: 'value'}
+  end
+
   let :resource_path do
     "qualquer_coisa"
   end
@@ -101,11 +105,11 @@ describe ContentGateway::Gateway do
     end
 
     before do
-      stub_request method: :get, url: resource_url
+      stub_request(method: :get, url: resource_url, headers: headers)
     end
 
     it "deveria realizar o request com http get" do
-      gateway.get resource_path
+      gateway.get resource_path, headers: headers
     end
 
     context "no modo com cache" do
@@ -118,35 +122,35 @@ describe ContentGateway::Gateway do
       end
 
       it "deveria guardar o cache stale" do
-        stub_request(url: resource_url) { cached_response }
+        stub_request(url: resource_url, headers: headers) { cached_response }
    
         cache_store = double("cache_store")
         cache_store.should_receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
         cache_store.should_receive(:write).with(stale_cache_key, cached_response, expires_in: default_stale_expires_in)
         config[:cache] = cache_store
    
-        gateway.get resource_path
+        gateway.get resource_path, headers: headers
       end
 
       describe "controle de timeout" do
         before do
-          stub_request(method: :get, url: resource_url) {
+          stub_request(method: :get, url: resource_url, headers: headers) {
             sleep(0.3)
           }
         end
 
         it "deveria aceitar um 'timeout' para sobreescrever o padrão" do
           Timeout.should_receive(:timeout).with(timeout)
-          gateway.get resource_path, timeout: timeout
+          gateway.get resource_path, timeout: timeout, headers: headers
         end
 
         it "deveria cortar requests que passem do tempo configurado" do
-          -> { gateway.get resource_path, timeout: timeout }.should raise_error ContentGateway::TimeoutError
+          -> { gateway.get resource_path, timeout: timeout, headers: headers }.should raise_error ContentGateway::TimeoutError
         end
 
         it "deveria cortar os acessos ao cache que passem do tempo configurado" do
           config[:cache].stub(:fetch) { sleep(1) }
-          -> { gateway.get resource_path, timeout: timeout }.should raise_error ContentGateway::TimeoutError
+          -> { gateway.get resource_path, timeout: timeout, headers: headers }.should raise_error ContentGateway::TimeoutError
         end
       end
 
@@ -166,7 +170,7 @@ describe ContentGateway::Gateway do
 
         context "server error" do
           before do
-            stub_request_with_error({method: :get, url: resource_url}, RestClient::InternalServerError.new)
+            stub_request_with_error({method: :get, url: resource_url, headers: headers}, RestClient::InternalServerError.new)
 
             cache_store = double("cache_store")
             cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
@@ -175,7 +179,7 @@ describe ContentGateway::Gateway do
           end
 
           it "deveria servir stale" do
-            gateway.get(resource_path).should eql "cached response"
+            gateway.get(resource_path, headers: headers).should eql "cached response"
           end
         end
       end
@@ -187,33 +191,33 @@ describe ContentGateway::Gateway do
         cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in)
         config[:cache] = cache_store
 
-        gateway.get resource_path, skip_cache: true
+        gateway.get resource_path, headers: headers, skip_cache: true
       end
 
       describe "controle de timeout" do
         let(:timeout) { 0.1 }
 
         before do
-          stub_request(method: :get, url: resource_url) {
+          stub_request(method: :get, url: resource_url, headers: headers) {
             sleep(0.3)
           }
         end
 
         it "deveria ignorar o parâmetro 'timeout'" do
           Timeout.should_not_receive(:timeout).with(timeout)
-          gateway.get resource_path, skip_cache: true, timeout: timeout
+          gateway.get resource_path, skip_cache: true, timeout: timeout, headers: headers
         end
       end
     end
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
-      stub_request_with_error({method: :get, url: resource_url}, RestClient::ResourceNotFound.new)
-      -> { gateway.get resource_path }.should raise_error ContentGateway::ResourceNotFound
+      stub_request_with_error({method: :get, url: resource_url, headers: headers}, RestClient::ResourceNotFound.new)
+      -> { gateway.get resource_path, headers: headers }.should raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
-      stub_request_with_error({method: :get, url: resource_url}, SocketError.new)
-      -> { gateway.get resource_path }.should raise_error ContentGateway::ConnectionFailure
+      stub_request_with_error({method: :get, url: resource_url, headers: headers}, SocketError.new)
+      -> { gateway.get resource_path, headers: headers }.should raise_error ContentGateway::ConnectionFailure
     end
 
     it "deveria aceitar um 'expires_in' para sobreescrever o padrão" do
@@ -225,7 +229,7 @@ describe ContentGateway::Gateway do
     end
 
     it "deveria aceitar um 'stale_expires_in' para sobreescrever o padrão" do
-      stub_request(url: resource_url) { cached_response }
+      stub_request(url: resource_url, headers: headers) { cached_response }
 
       stale_expires_in = 5.minutes
       cache_store = double("cache_store")
@@ -233,7 +237,7 @@ describe ContentGateway::Gateway do
       cache_store.should_receive(:write).with(stale_cache_key, cached_response, expires_in: stale_expires_in)
       config[:cache] = cache_store
 
-      gateway.get resource_path, stale_expires_in: stale_expires_in
+      gateway.get resource_path, stale_expires_in: stale_expires_in, headers: headers
     end
   end
 

@@ -12,11 +12,15 @@ module ContentGateway
       expires_in = params.delete :expires_in
       stale_expires_in = params.delete :stale_expires_in
       skip_cache = params.delete :skip_cache
+      headers = params.delete :headers
 
       url = self.generate_url resource_path, params
 
       measure("GET - #{url}") {
-        send_request({method: :get, url: url}, {skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout})
+        data = {method: :get, url: url}.tap do |h|
+          h[:headers] = headers if headers.present?
+        end
+        send_request(data, {skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout})
       }
     end
 
@@ -64,6 +68,7 @@ module ContentGateway
     def send_request request_data, params = {}
       method  = request_data[:method] || :get
       url     = request_data[:url]
+      headers = request_data[:headers]
       payload = request_data[:payload]
       stale_cache_key = "stale:#{url}"
       timeout_value = params[:timeout] || @config.timeout
@@ -72,6 +77,7 @@ module ContentGateway
         begin
           data = {method: method, url: url, proxy: :none}.tap do |h|
             h[:payload] = payload if payload.present?
+            h[:headers] = headers if headers.present?
           end
 
           request = RestClient::Request.new(data)
