@@ -29,6 +29,8 @@ describe ContentGateway::Gateway do
     "qualquer_coisa"
   end
 
+  let(:timeout) { 0.1 }
+
   let :cached_response do
     response = "cached response"
     response.instance_eval do
@@ -127,8 +129,6 @@ describe ContentGateway::Gateway do
       end
 
       describe "controle de timeout" do
-        let(:timeout) { 0.1 }
-
         before do
           stub_request(method: :get, url: resource_url) {
             sleep(0.3)
@@ -148,20 +148,37 @@ describe ContentGateway::Gateway do
           config[:cache].stub(:fetch) { sleep(1) }
           -> { gateway.get resource_path, timeout: timeout }.should raise_error ContentGateway::TimeoutError
         end
+      end
 
-        context "com cache stale" do
+      context "com cache stale" do
+        context "timeout" do
           before do
             cache_store = double("cache_store")
             cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_raise(Timeout::Error)
             cache_store.stub(:read).with(stale_cache_key).and_return(cached_response)
             config[:cache] = cache_store
           end
-    
+      
           it "deveria servir stale" do
-            gateway.get(resource_path, timeout: 0.1).should eql "cached response"
+            gateway.get(resource_path, timeout: timeout).should eql "cached response"
           end
         end
-       end
+
+        context "server error" do
+          before do
+            stub_request_with_error({method: :get, url: resource_url}, RestClient::InternalServerError.new)
+
+            cache_store = double("cache_store")
+            cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+            cache_store.stub(:read).with(stale_cache_key).and_return(cached_response)
+            config[:cache] = cache_store
+          end
+
+          it "deveria servir stale" do
+            gateway.get(resource_path).should eql "cached response"
+          end
+        end
+      end
     end
 
     context "no modo skip cache" do

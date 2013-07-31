@@ -66,6 +66,7 @@ module ContentGateway
       url     = request_data[:url]
       payload = request_data[:payload]
       stale_cache_key = "stale:#{url}"
+      timeout_value = params[:timeout] || @config.timeout
 
       request = lambda {
         begin
@@ -88,21 +89,28 @@ module ContentGateway
           logger.info "#{prefix(403)} :: #{color_message(url)}"
           raise ContentGateway::Forbidden.new url, e3
 
-        rescue StandardError => e4
+        rescue RestClient::InternalServerError => e4
+          return @config.cache.read(stale_cache_key).tap do |cached|
+            unless cached
+              logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
+              raise ContentGateway::ServerError.new url, e4
+            end
+            @cache_status = "STALE"
+          end
+        rescue StandardError => e5
           logger.info "#{prefix(500)} :: #{color_message(url)}"
-          raise ContentGateway::ConnectionFailure.new url, e4
+          raise ContentGateway::ConnectionFailure.new url, e5
         end
       }
 
       if !params[:skip_cache] && [:get, :head].include?(method)
         begin
-          timeout_value = params[:timeout] || @config.timeout
           Timeout.timeout(timeout_value) do
             @config.cache.fetch(url, expires_in: params[:expires_in] || @config.cache_expires_in) do
               @cache_status = "MISS"
               response = request.call
 
-              @config.cache.write(stale_cache_key, response, expires_in: params[:stale_expires_in] || @config.cache_stale_expires_in)
+              @config.cache.write(stale_cache_key, response, expires_in: params[:stale_expires_in] || @config.cache_stale_expires_in) if @cache_status == "MISS"
               response
             end
           end
