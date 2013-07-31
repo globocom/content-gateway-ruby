@@ -11,12 +11,12 @@ module ContentGateway
       timeout = params.delete :timeout
       expires_in = params.delete :expires_in
       stale_expires_in = params.delete :stale_expires_in
-      admin = params.delete :admin
+      skip_cache = params.delete :skip_cache
 
       url = self.generate_url resource_path, params
 
       measure("GET - #{url}") {
-        send_request({method: :get, url: url}, {admin: admin, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout})
+        send_request({method: :get, url: url}, {skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout})
       }
     end
 
@@ -94,7 +94,7 @@ module ContentGateway
         end
       }
 
-      if !params[:admin] && [:get, :head].include?(method)
+      if !params[:skip_cache] && [:get, :head].include?(method)
         begin
           timeout_value = params[:timeout] || @config.timeout
           Timeout.timeout(timeout_value) do

@@ -106,7 +106,7 @@ describe ContentGateway::Gateway do
       gateway.get resource_path
     end
 
-    context "no modo não-admin" do
+    context "no modo com cache" do
       it "deveria cachear as chamadas" do
         cache_store = double("cache_store")
         cache_store.should_receive(:fetch).with(resource_url, expires_in: default_expires_in)
@@ -164,13 +164,13 @@ describe ContentGateway::Gateway do
        end
     end
 
-    context "no modo admin" do
+    context "no modo skip cache" do
       it "deveria não cachear as chamadas" do
         cache_store = double("cache_store")
         cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in)
         config[:cache] = cache_store
 
-        gateway.get resource_path, admin: true
+        gateway.get resource_path, skip_cache: true
       end
 
       describe "controle de timeout" do
@@ -184,7 +184,7 @@ describe ContentGateway::Gateway do
 
         it "deveria ignorar o parâmetro 'timeout'" do
           Timeout.should_not_receive(:timeout).with(timeout)
-          gateway.get resource_path, admin: true, timeout: timeout
+          gateway.get resource_path, skip_cache: true, timeout: timeout
         end
       end
     end
