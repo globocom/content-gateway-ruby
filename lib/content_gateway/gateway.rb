@@ -2,9 +2,10 @@
 
 module ContentGateway
   class Gateway
-    def initialize config, url_generator
+    def initialize config, url_generator, default_params
       @config = config
       @url_generator = url_generator
+      @default_params = default_params
     end
 
     def get resource_path, params = {}
@@ -12,7 +13,7 @@ module ContentGateway
       expires_in = params.delete :expires_in
       stale_expires_in = params.delete :stale_expires_in
       skip_cache = params.delete :skip_cache
-      headers = params.delete :headers
+      headers = (params.delete :headers) || @default_params[:headers]
 
       url = self.generate_url resource_path, params
 
