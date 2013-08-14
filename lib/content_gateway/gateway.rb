@@ -82,25 +82,29 @@ module ContentGateway
           logger.info "#{prefix(404)} :: #{color_message(url)}"
           raise ContentGateway::ResourceNotFound.new url, e1
 
-        rescue RestClient::UnprocessableEntity => e2
+        rescue RestClient::Unauthorized => e2
+          logger.info "#{prefix(401)} :: #{color_message(url)}"
+          raise ContentGateway::UnauthorizedError.new url, e2
+
+        rescue RestClient::UnprocessableEntity => e3
           logger.info "#{prefix(422)} :: #{color_message(url)}"
-          raise ContentGateway::ValidationError.new url, e2
+          raise ContentGateway::ValidationError.new url, e3
 
-        rescue RestClient::Forbidden => e3
+        rescue RestClient::Forbidden => e4
           logger.info "#{prefix(403)} :: #{color_message(url)}"
-          raise ContentGateway::Forbidden.new url, e3
+          raise ContentGateway::Forbidden.new url, e4
 
-        rescue RestClient::InternalServerError => e4
+        rescue RestClient::InternalServerError => e5
           return @config.cache.read(stale_cache_key).tap do |cached|
             unless cached
               logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
-              raise ContentGateway::ServerError.new url, e4
+              raise ContentGateway::ServerError.new url, e5
             end
             @cache_status = "STALE"
           end
-        rescue StandardError => e5
+        rescue StandardError => e6
           logger.info "#{prefix(500)} :: #{color_message(url)}"
-          raise ContentGateway::ConnectionFailure.new url, e5
+          raise ContentGateway::ConnectionFailure.new url, e6
         end
       }
 

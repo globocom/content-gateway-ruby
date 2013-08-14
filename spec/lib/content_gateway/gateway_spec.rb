@@ -309,9 +309,9 @@ describe ContentGateway::Gateway do
       -> { gateway.post resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
     end
 
-    it "deveria lançar uma exception de UnprocessableEntity em caso de 422" do
-      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::UnprocessableEntity.new)
-      -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::ValidationError)
+    it "deveria lançar uma exception de UnprocessableEntity em caso de 401" do
+      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Unauthorized.new)
+      -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::UnauthorizedError)
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do

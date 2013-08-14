@@ -13,6 +13,7 @@ module ContentGateway
   class TimeoutError < BaseError; end
   class Forbidden < BaseError; end
   class ServerError < BaseError; end
+  class UnauthorizedError < BaseError; end
 
   class ValidationError < BaseError
     attr_reader :errors
