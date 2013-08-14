@@ -19,7 +19,7 @@ describe ContentGateway::Gateway do
   end
 
   let :gateway do
-    ContentGateway::Gateway.new config, url_generator, headers: headers
+    ContentGateway::Gateway.new "API XPTO", config, url_generator, headers: headers
   end
 
   let :params do
