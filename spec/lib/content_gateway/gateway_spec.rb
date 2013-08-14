@@ -50,44 +50,6 @@ describe ContentGateway::Gateway do
     config.cache.clear
   end
 
-  # describe "#initialize" do
-  #   it "deveria aceitar o host como parâmetro" do
-  #     novo_host = stub("host")
-  #     gateway = ContentGateway::Gateway.new(novo_host)
-  #     gateway.instance_variable_get(:@host).should eql novo_host
-  #   end
-
-  #   it "deveria assumir um access_token nulo caso não seja passado" do
-  #     gateway = ContentGateway::Gateway.new("host")
-  #     gateway.instance_variable_get(:@access_token).should be_nil
-  #   end
-
-  #   it "deveria aceitar o access_token como parâmetro" do
-  #     gateway = ContentGateway::Gateway.new("host", "token")
-  #     gateway.instance_variable_get(:@access_token).should eql "token"
-  #   end
-  # end
-
-  # describe "#generate_url" do
-  #   it "deveria gerar a url sem parâmetros" do
-  #     gateway.generate_url(resource_path).should eql "#{host}/api/#{resource_path}.json"
-  #   end
-
-  #   it "deveria gerar a url com parâmetros" do
-  #     gateway.generate_url(resource_path, params).should eql "#{host}/api/#{resource_path}.json?a%7Cb=1&name=a%7Cb%7Cc"
-  #   end
-
-  #   describe "quando possuir o access_token configurado" do
-  #     let :gateway do
-  #       ContentGateway::Gateway.new "host", "token"
-  #     end
-
-  #     it "deveria incluir automaticamente" do
-  #       gateway.generate_url(resource_path).should eql "#{host}/api/#{resource_path}.json?access_token=token"
-  #     end
-  #   end
-  # end
-
   describe "#get" do
     let :resource_url do
       url_generator.generate(resource_path, {})
