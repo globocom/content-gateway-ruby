@@ -3,7 +3,7 @@
 module ContentGateway
   class Gateway
     def initialize config, url_generator
-      @config = OpenStruct.new(config)
+      @config = config
       @url_generator = url_generator
     end
 

@@ -23,5 +23,4 @@ end
 
 require "content_gateway/version"
 require "content_gateway/exceptions"
-# require "content_gateway/config"
 require "content_gateway/gateway"
