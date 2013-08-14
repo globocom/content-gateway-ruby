@@ -2,7 +2,7 @@
 
 module ContentGateway
   class Gateway
-    def initialize config, url_generator #host = Config.host, access_token = nil
+    def initialize config, url_generator
       @config = OpenStruct.new(config)
       @url_generator = url_generator
     end
@@ -56,12 +56,6 @@ module ContentGateway
 
     def generate_url resource_path, params = {}
       return @url_generator.generate(resource_path, params)
-
-      # url = "#{@host}/api/#{resource_path}.json"
-      # params.merge!(access_token: @access_token) if @access_token
-
-      # query_string = params.keys.map {|key| "#{URI.escape(key.to_s)}=#{URI.escape(params[key].to_s)}"}.join("&")
-      # query_string.empty? ? url : "#{url}?#{query_string}"
     end
 
     private
@@ -75,7 +69,7 @@ module ContentGateway
 
       request = lambda {
         begin
-          data = {method: method, url: url, proxy: :none}.tap do |h|
+          data = {method: method, url: url, proxy: @config.proxy || :none}.tap do |h|
             h[:payload] = payload if payload.present?
             h[:headers] = headers if headers.present?
           end
