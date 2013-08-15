@@ -71,7 +71,7 @@ module ContentGateway
 
       request = lambda {
         begin
-          data = {method: method, url: url, proxy: @config.proxy || :none}.tap do |h|
+          data = {method: method, url: url, proxy: @config.try(:proxy) || :none}.tap do |h|
             h[:payload] = payload if payload.present?
             h[:headers] = headers if headers.present?
           end
