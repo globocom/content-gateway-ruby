@@ -139,10 +139,14 @@ module ContentGateway
       time_elapsed = Benchmark.measure { result = yield }
       sufix = "finished in #{humanize_elapsed_time(time_elapsed.real)}. "
       cache_log = (@cache_status || "HIT").to_s.ljust(4, " ")
-      log_message = "#{prefix(result.try(:code))} :: #{cache_log} #{color_message(message)} #{sufix}"
+      log_message = "#{prefix(code(result))} :: #{cache_log} #{color_message(message)} #{sufix}"
 
       logger.info log_message
       result
+    end
+
+    def code result
+      result.respond_to?(:code) ? result.code : ""
     end
 
     def humanize_elapsed_time time_elapsed

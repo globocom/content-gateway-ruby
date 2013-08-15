@@ -1,4 +1,8 @@
-2013-08-14 [0.0.7] Emerson Macedo Leite <emerson@corp.globo.com>
+2013-08-15 [0.0.8] Emerson Macedo Leite <emerson@corp.globo.com>
+
+	* Tratando quando o resultado do cache não é um objeto do RestClient e não possuir o método "code"
+
+2013-08-15 [0.0.7] Emerson Macedo Leite <emerson@corp.globo.com>
 
 	* Default params now are optional
 
