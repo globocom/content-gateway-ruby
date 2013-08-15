@@ -50,6 +50,12 @@ describe ContentGateway::Gateway do
     config.cache.clear
   end
 
+  describe ".new" do
+    it "default_params deveria ser opcional" do
+      ContentGateway::Gateway.new("API XPTO", config, url_generator).should be_kind_of(ContentGateway::Gateway)
+    end
+  end
+
   describe "#get" do
     let :resource_url do
       url_generator.generate(resource_path, {})

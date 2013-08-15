@@ -2,7 +2,7 @@
 
 module ContentGateway
   class Gateway
-    def initialize label, config, url_generator, default_params
+    def initialize label, config, url_generator, default_params={}
       @label = label
       @config = config
       @url_generator = url_generator
