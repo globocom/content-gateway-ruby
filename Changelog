@@ -1,6 +1,10 @@
+2013-08-15 [0.0.9] Emerson Macedo Leite <emerson@corp.globo.com>
+
+	* Using try to get proxy from config to avoid error when not exists.
+
 2013-08-15 [0.0.8] Emerson Macedo Leite <emerson@corp.globo.com>
 
-	* Tratando quando o resultado do cache não é um objeto do RestClient e não possuir o método "code"
+	* Return empty when result is not a RestClient object and do not have "code" method.
 
 2013-08-15 [0.0.7] Emerson Macedo Leite <emerson@corp.globo.com>
 
