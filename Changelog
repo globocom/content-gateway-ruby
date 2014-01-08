@@ -1,3 +1,7 @@
+2014-01-17 [0.0.10] Daniel Fernandes Martins <daniel.fernandes@corp.globo.com>
+
+	* Do not depend on a specific version of activesupport.
+
 2013-08-15 [0.0.9] Emerson Macedo Leite <emerson@corp.globo.com>
 
 	* Using try to get proxy from config to avoid error when not exists.
