@@ -1,20 +1,24 @@
-2014-01-17 [0.0.10] Daniel Fernandes Martins <daniel.fernandes@corp.globo.com>
+2014-01-17 [0.0.11]
+
+	* Adding delete method support
+
+2014-01-17 [0.0.10]
 
 	* Do not depend on a specific version of activesupport.
 
-2013-08-15 [0.0.9] Emerson Macedo Leite <emerson@corp.globo.com>
+2013-08-15 [0.0.9]
 
 	* Using try to get proxy from config to avoid error when not exists.
 
-2013-08-15 [0.0.8] Emerson Macedo Leite <emerson@corp.globo.com>
+2013-08-15 [0.0.8]
 
 	* Return empty when result is not a RestClient object and do not have "code" method.
 
-2013-08-15 [0.0.7] Emerson Macedo Leite <emerson@corp.globo.com>
+2013-08-15 [0.0.7]
 
 	* Default params now are optional
 
-2013-08-14 [0.0.6] Emerson Macedo Leite <emerson@corp.globo.com>
+2013-08-14 [0.0.6]
 
 	* First release
 	* Replaces Esportes API gateway.rb

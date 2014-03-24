@@ -44,6 +44,15 @@ module ContentGateway
       }
     end
 
+    def delete resource_path, params = {}
+      payload = params.delete :payload
+      url = self.generate_url resource_path, params
+
+      measure("DELETE - #{url}") {
+        send_request({method: :delete, url: url, payload: payload}, params)
+      }
+    end
+
     def get_json resource_path, params = {}
       JSON.parse get(resource_path, params)
     end
@@ -176,7 +185,7 @@ module ContentGateway
           log.formatter = lambda {|severity, datetime, progname, msg|
             "#{datetime.strftime("%Y-%m-%d %H:%M:%S")} #{severity.upcase} #{msg}\n"
           }
-          
+
           log
         end
       }.yield
