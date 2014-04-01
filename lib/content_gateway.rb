@@ -11,8 +11,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/core_ext/date_time/calculations"
 require "active_support/core_ext/hash/indifferent_access"
 
-require "debugger" if ENV['RACK_ENV'] == 'test'
-
 module ContentGateway
   extend self
 
