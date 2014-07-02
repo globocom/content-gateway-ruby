@@ -104,17 +104,21 @@ module ContentGateway
           logger.info "#{prefix(403)} :: #{color_message(url)}"
           raise ContentGateway::Forbidden.new url, e4
 
-        rescue RestClient::InternalServerError => e5
+        rescue RestClient::Conflict => e5
+          logger.info "#{prefix(409)} :: #{color_message(url)}"
+          raise ContentGateway::ConflictError.new url, e5
+
+        rescue RestClient::InternalServerError => e6
           return @config.cache.read(stale_cache_key).tap do |cached|
             unless cached
               logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
-              raise ContentGateway::ServerError.new url, e5
+              raise ContentGateway::ServerError.new url, e6
             end
             @cache_status = "STALE"
           end
-        rescue StandardError => e6
+        rescue StandardError => e7
           logger.info "#{prefix(500)} :: #{color_message(url)}"
-          raise ContentGateway::ConnectionFailure.new url, e6
+          raise ContentGateway::ConnectionFailure.new url, e7
         end
       }
 

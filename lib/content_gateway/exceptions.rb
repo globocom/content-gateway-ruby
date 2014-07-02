@@ -14,6 +14,7 @@ module ContentGateway
   class Forbidden < BaseError; end
   class ServerError < BaseError; end
   class UnauthorizedError < BaseError; end
+  class ConflictError < BaseError; end
 
   class ValidationError < BaseError
     attr_reader :errors

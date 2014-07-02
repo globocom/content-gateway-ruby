@@ -185,6 +185,11 @@ describe ContentGateway::Gateway do
         -> { gateway.get resource_path }.should raise_error ContentGateway::ResourceNotFound
       end
 
+      it "deveria lançar uma exception de Conflict em caso de 409" do
+        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::Conflict.new)
+        -> { gateway.get resource_path }.should raise_error ContentGateway::ConflictError
+      end
+
       it "deveria lançar um exception de ConnectionFailure em caso de 500" do
         stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, SocketError.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ConnectionFailure
