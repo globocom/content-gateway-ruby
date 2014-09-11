@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'content_gateway/Version'
+require 'content_gateway/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "content_gateway"
@@ -25,4 +25,3 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "simplecov",                   ">= 0.7.1"
   gem.add_development_dependency "debugger"
 end
-
