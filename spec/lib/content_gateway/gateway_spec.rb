@@ -178,6 +178,20 @@ describe ContentGateway::Gateway do
             gateway.get resource_path, skip_cache: true, timeout: timeout
           end
         end
+
+        context "server error" do
+          before do
+            stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new)
+
+            cache_store = double("cache_store")
+            cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+            config.cache = cache_store
+          end
+
+          it "deveria ignorar o cache" do
+            -> { gateway.get(resource_path, skip_cache: true) }.should raise_error ContentGateway::ServerError
+          end
+        end
       end
 
       it "deveria lançar uma exception de NotFound em caso de 404" do

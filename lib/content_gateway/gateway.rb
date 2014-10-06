@@ -66,10 +66,11 @@ module ContentGateway
     end
 
     def generate_url resource_path, params = {}
-      return @url_generator.generate(resource_path, params)
+      @url_generator.generate(resource_path, params)
     end
 
     private
+
     def send_request request_data, params = {}
       method  = request_data[:method] || :get
       url     = request_data[:url]
@@ -109,12 +110,17 @@ module ContentGateway
           raise ContentGateway::ConflictError.new url, e5
 
         rescue RestClient::InternalServerError => e6
-          return @config.cache.read(stale_cache_key).tap do |cached|
-            unless cached
-              logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
-              raise ContentGateway::ServerError.new url, e6
+          if use_cache?(method, params)
+            return @config.cache.read(stale_cache_key).tap do |cached|
+              unless cached
+                logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
+                raise ContentGateway::ServerError.new url, e6
+              end
+              @cache_status = "STALE"
             end
-            @cache_status = "STALE"
+          else
+            logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
+            raise ContentGateway::ServerError.new url, e6
           end
         rescue StandardError => e7
           logger.info "#{prefix(500)} :: #{color_message(url)}"
@@ -122,7 +128,7 @@ module ContentGateway
         end
       }
 
-      if !params[:skip_cache] && [:get, :head].include?(method)
+      if use_cache?(method, params)
         begin
           Timeout.timeout(timeout_value) do
             @config.cache.fetch(url, expires_in: params[:expires_in] || @config.cache_expires_in) do
@@ -193,6 +199,10 @@ module ContentGateway
           log
         end
       }.yield
+    end
+
+    def use_cache? method, params = {}
+      !params[:skip_cache] && [:get, :head].include?(method)
     end
   end
 end
