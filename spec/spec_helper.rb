@@ -4,7 +4,7 @@ ENV['RACK_ENV'] = 'test'
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
-require "debugger"
+require 'byebug'
 require 'rspec'
 require 'content_gateway'
 

@@ -23,5 +23,5 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "rspec",                       ">= 2.3.0"
   gem.add_development_dependency "simplecov",                   ">= 0.7.1"
-  gem.add_development_dependency "debugger"
+  gem.add_development_dependency "byebug"
 end
