@@ -109,7 +109,10 @@ module ContentGateway
           logger.info "#{prefix(409)} :: #{color_message(url)}"
           raise ContentGateway::ConflictError.new url, e5
 
-        rescue RestClient::InternalServerError => e6
+        rescue RestClient::Exception => e6
+          status_code = e6.http_code
+          raise e6 if status_code < 500
+
           if use_cache?(method, params)
             return @config.cache.read(stale_cache_key).tap do |cached|
               unless cached
@@ -119,7 +122,7 @@ module ContentGateway
               @cache_status = "STALE"
             end
           else
-            logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
+            logger.info "#{prefix(status_code)} :: #{color_message(url)} - SERVER ERROR"
             raise ContentGateway::ServerError.new url, e6
           end
         rescue StandardError => e7

@@ -140,7 +140,7 @@ describe ContentGateway::Gateway do
 
           context "server error" do
             before do
-              stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new)
+              stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new(nil, 500))
 
               cache_store = double("cache_store")
               cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
@@ -181,7 +181,7 @@ describe ContentGateway::Gateway do
 
         context "server error" do
           before do
-            stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new)
+            stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new(nil, 500))
 
             cache_store = double("cache_store")
             cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
