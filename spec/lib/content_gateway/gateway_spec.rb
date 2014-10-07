@@ -194,17 +194,22 @@ describe ContentGateway::Gateway do
         end
       end
 
-      it "deveria lançar uma exception de NotFound em caso de 404" do
+      it "deveria lançar uma exception de NotFound em caso de erro 404" do
         stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::ResourceNotFound.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ResourceNotFound
       end
 
-      it "deveria lançar uma exception de Conflict em caso de 409" do
+      it "deveria lançar uma exception de Conflict em caso de erro 409" do
         stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::Conflict.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ConflictError
       end
 
-      it "deveria lançar um exception de ConnectionFailure em caso de 500" do
+      it "deveria lançar um exception de ServerError em caso de erro 500" do
+        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::Exception.new(nil, 500))
+        -> { gateway.get resource_path }.should raise_error ContentGateway::ServerError
+      end
+
+      it "deveria lançar um exception de ConnectionFailure em caso de outros erros não mapeados" do
         stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, SocketError.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ConnectionFailure
       end
