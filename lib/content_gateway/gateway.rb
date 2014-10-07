@@ -1,77 +1,75 @@
-# -*- coding: utf-8 -*-
-
 module ContentGateway
   class Gateway
-    def initialize label, config, url_generator, default_params={}
+    def initialize(label, config, url_generator, default_params = {})
       @label = label
       @config = config
       @url_generator = url_generator
       @default_params = default_params
     end
 
-    def get resource_path, params = {}
+    def get(resource_path, params = {})
       timeout = params.delete :timeout
       expires_in = params.delete :expires_in
       stale_expires_in = params.delete :stale_expires_in
       skip_cache = params.delete :skip_cache
       headers = (params.delete :headers) || @default_params[:headers]
 
-      url = self.generate_url resource_path, params
+      url = self.generate_url(resource_path, params)
 
-      measure("GET - #{url}") {
-        data = {method: :get, url: url}.tap do |h|
+      measure("GET - #{url}") do
+        data = { method: :get, url: url }.tap do |h|
           h[:headers] = headers if headers.present?
         end
-        send_request(data, {skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout})
-      }
+        send_request(data, skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout)
+      end
     end
 
-    def post resource_path, params = {}
+    def post(resource_path, params = {})
       payload = params.delete :payload
-      url = self.generate_url resource_path, params
+      url = self.generate_url(resource_path, params)
 
-      measure("POST - #{url}") {
-        send_request({method: :post, url: url, payload: payload}, params)
-      }
+      measure("POST - #{url}") do
+        send_request({ method: :post, url: url, payload: payload }, params)
+      end
     end
 
-    def put resource_path, params = {}
+    def put(resource_path, params = {})
       payload = params.delete :payload
-      url = self.generate_url resource_path, params
+      url = self.generate_url(resource_path, params)
 
-      measure("PUT - #{url}") {
-        send_request({method: :put, url: url, payload: payload}, params)
-      }
+      measure("PUT - #{url}") do
+        send_request({ method: :put, url: url, payload: payload }, params)
+      end
     end
 
-    def delete resource_path, params = {}
+    def delete(resource_path, params = {})
       payload = params.delete :payload
-      url = self.generate_url resource_path, params
+      url = self.generate_url(resource_path, params)
 
-      measure("DELETE - #{url}") {
-        send_request({method: :delete, url: url, payload: payload}, params)
-      }
+      measure("DELETE - #{url}") do
+        send_request({ method: :delete, url: url, payload: payload }, params)
+      end
     end
 
-    def get_json resource_path, params = {}
+    def get_json(resource_path, params = {})
       JSON.parse get(resource_path, params)
     end
 
-    def post_json resource_path, params = {}
+    def post_json(resource_path, params = {})
       JSON.parse post(resource_path, params)
     end
 
-    def put_json resource_path, params = {}
+    def put_json(resource_path, params = {})
       JSON.parse put(resource_path, params)
     end
 
-    def generate_url resource_path, params = {}
+    def generate_url(resource_path, params = {})
       @url_generator.generate(resource_path, params)
     end
 
     private
 
-    def send_request request_data, params = {}
+    def send_request(request_data, params = {})
       method  = request_data[:method] || :get
       url     = request_data[:url]
       headers = request_data[:headers]
@@ -79,9 +77,9 @@ module ContentGateway
       stale_cache_key = "stale:#{url}"
       timeout_value = params[:timeout] || @config.timeout
 
-      request = lambda {
+      request = lambda do
         begin
-          data = {method: method, url: url, proxy: @config.try(:proxy) || :none}.tap do |h|
+          data = { method: method, url: url, proxy: @config.try(:proxy) || :none }.tap do |h|
             h[:payload] = payload if payload.present?
             h[:headers] = headers if headers.present?
           end
@@ -129,7 +127,7 @@ module ContentGateway
           logger.info "#{prefix(500)} :: #{color_message(url)}"
           raise ContentGateway::ConnectionFailure.new url, e7
         end
-      }
+      end
 
       if use_cache?(method, params)
         begin
@@ -156,7 +154,7 @@ module ContentGateway
       end
     end
 
-    def measure message
+    def measure(message)
       result = nil
       time_elapsed = Benchmark.measure { result = yield }
       sufix = "finished in #{humanize_elapsed_time(time_elapsed.real)}. "
@@ -167,30 +165,30 @@ module ContentGateway
       result
     end
 
-    def code result
+    def code(result)
       result.respond_to?(:code) ? result.code : ""
     end
 
-    def humanize_elapsed_time time_elapsed
+    def humanize_elapsed_time(time_elapsed)
       time_elapsed >= 1 ? "%.3f secs" % time_elapsed : "#{(time_elapsed * 1000).to_i}ms"
     end
 
-    def prefix code = nil
+    def prefix(code = nil)
       "[#{@label}] #{color_code(code)}"
     end
 
-    def color_message message
+    def color_message(message)
       "\033[1;33m#{message}\033[0m"
     end
 
-    def color_code code
+    def color_code(code)
       color = code == 200 ? "32" : "31"
       code_message = code.to_s.ljust(3, " ")
       "\033[#{color}m#{code_message}\033[0m"
     end
 
     def logger
-      @logger || -> {
+      @logger || lambda do
         if defined?(Rails)
           Rails.logger
         else
@@ -201,10 +199,10 @@ module ContentGateway
 
           log
         end
-      }.yield
+      end.yield
     end
 
-    def use_cache? method, params = {}
+    def use_cache?(method, params = {})
       !params[:skip_cache] && [:get, :head].include?(method)
     end
   end

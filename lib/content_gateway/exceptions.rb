@@ -2,7 +2,7 @@ module ContentGateway
   class BaseError < StandardError
     attr_reader :wrapped_exception
 
-    def initialize resource_url, wrapped_exception
+    def initialize(resource_url, wrapped_exception)
       super "#{resource_url} - #{wrapped_exception.message}"
       @wrapped_exception = wrapped_exception
     end
@@ -19,7 +19,7 @@ module ContentGateway
   class ValidationError < BaseError
     attr_reader :errors
 
-    def initialize resource_url, wrapped_exception
+    def initialize(resource_url, wrapped_exception)
       super resource_url, wrapped_exception
 
       response = wrapped_exception.response

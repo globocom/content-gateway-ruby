@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "ostruct"
 require "logger"
 require "timeout"
@@ -15,7 +13,6 @@ module ContentGateway
   extend self
 
   def logger
-    
   end
 end
 

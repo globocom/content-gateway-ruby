@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require "spec_helper"
 
 describe ContentGateway::Gateway do
@@ -10,12 +8,12 @@ describe ContentGateway::Gateway do
   end
 
   let! :config do
-    OpenStruct.new({
+    OpenStruct.new(
       cache: ActiveSupport::Cache::NullStore.new,
       cache_expires_in: 15.minutes,
       cache_stale_expires_in: 1.hour,
       proxy: "proxy"
-    })
+    )
   end
 
   let :gateway do
@@ -23,11 +21,11 @@ describe ContentGateway::Gateway do
   end
 
   let :params do
-    {"a|b" => 1, name: "a|b|c"}
+    { "a|b" => 1, name: "a|b|c" }
   end
 
   let :headers do
-    {key: 'value'}
+    { key: 'value' }
   end
 
   let :resource_path do
@@ -195,22 +193,22 @@ describe ContentGateway::Gateway do
       end
 
       it "deveria lançar uma exception de NotFound em caso de erro 404" do
-        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::ResourceNotFound.new)
+        stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::ResourceNotFound.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ResourceNotFound
       end
 
       it "deveria lançar uma exception de Conflict em caso de erro 409" do
-        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::Conflict.new)
+        stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::Conflict.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ConflictError
       end
 
       it "deveria lançar um exception de ServerError em caso de erro 500" do
-        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::Exception.new(nil, 500))
+        stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::Exception.new(nil, 500))
         -> { gateway.get resource_path }.should raise_error ContentGateway::ServerError
       end
 
       it "deveria lançar um exception de ConnectionFailure em caso de outros erros não mapeados" do
-        stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, SocketError.new)
+        stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, SocketError.new)
         -> { gateway.get resource_path }.should raise_error ContentGateway::ConnectionFailure
       end
 
@@ -248,7 +246,7 @@ describe ContentGateway::Gateway do
 
     context "sobrescrevendo os headers" do
       let :novos_headers do
-        {key2: 'value2'}
+        { key2: 'value2' }
       end
 
       before do
@@ -263,22 +261,22 @@ describe ContentGateway::Gateway do
 
   describe "#get_json" do
     it "deveria converter o resultado do 'get' para JSON" do
-      gateway.should_receive(:get).with(resource_path, params).and_return({"a" => 1}.to_json)
-      gateway.get_json(resource_path, params).should eql({"a" => 1})
+      gateway.should_receive(:get).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      gateway.get_json(resource_path, params).should eql("a" => 1)
     end
   end
 
   describe "#post_json" do
     it "deveria converter o resultado do 'post' para JSON" do
-      gateway.should_receive(:post).with(resource_path, params).and_return({"a" => 1}.to_json)
-      gateway.post_json(resource_path, params).should eql({"a" => 1})
+      gateway.should_receive(:post).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      gateway.post_json(resource_path, params).should eql("a" => 1)
     end
   end
 
   describe "#put_json" do
     it "deveria converter o resultado do 'put' para JSON" do
-      gateway.should_receive(:put).with(resource_path, params).and_return({"a" => 1}.to_json)
-      gateway.put_json(resource_path, params).should eql({"a" => 1})
+      gateway.should_receive(:put).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      gateway.put_json(resource_path, params).should eql("a" => 1)
     end
   end
 
@@ -288,7 +286,7 @@ describe ContentGateway::Gateway do
     end
 
     let :payload do
-      {param: "value"}
+      { param: "value" }
     end
 
     it "deveria realizar a request com http post" do
@@ -297,22 +295,22 @@ describe ContentGateway::Gateway do
     end
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
-      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::ResourceNotFound.new)
+      stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
       -> { gateway.post resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 401" do
-      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Unauthorized.new)
+      stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Unauthorized.new)
       -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::UnauthorizedError)
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
-      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Forbidden.new)
+      stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
       -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
-      stub_request_with_error({method: :post, url: resource_url, proxy: config.proxy, payload: payload}, SocketError.new)
+      stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
       -> { gateway.post resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
     end
   end
@@ -323,7 +321,7 @@ describe ContentGateway::Gateway do
     end
 
     let :payload do
-      {param: "value"}
+      { param: "value" }
     end
 
     it "deveria realizar a request com http post" do
@@ -332,22 +330,22 @@ describe ContentGateway::Gateway do
     end
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
-      stub_request_with_error({method: :delete, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::ResourceNotFound.new)
+      stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
       -> { gateway.delete resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 401" do
-      stub_request_with_error({method: :delete, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Unauthorized.new)
+      stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Unauthorized.new)
       -> { gateway.delete resource_path, payload: payload }.should raise_error(ContentGateway::UnauthorizedError)
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
-      stub_request_with_error({method: :delete, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Forbidden.new)
+      stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
       -> { gateway.delete resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
-      stub_request_with_error({method: :delete, url: resource_url, proxy: config.proxy, payload: payload}, SocketError.new)
+      stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
       -> { gateway.delete resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
     end
   end
@@ -358,7 +356,7 @@ describe ContentGateway::Gateway do
     end
 
     let :payload do
-      {param: "value"}
+      { param: "value" }
     end
 
     it "deveria realizar a request com http put" do
@@ -367,42 +365,42 @@ describe ContentGateway::Gateway do
     end
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
-      stub_request_with_error({method: :put, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::ResourceNotFound.new)
+      stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
       -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 422" do
-      stub_request_with_error({method: :put, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::UnprocessableEntity)
+      stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::UnprocessableEntity)
       -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ValidationError
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
-      stub_request_with_error({method: :put, url: resource_url, proxy: config.proxy, payload: payload}, RestClient::Forbidden.new)
+      stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
       -> { gateway.put resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
-      stub_request_with_error({method: :put, url: resource_url, proxy: config.proxy, payload: payload}, SocketError.new)
+      stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
       -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
     end
   end
 
   private
 
-  def stub_request opts, payload = {}, &block
-    opts = {method: :get, proxy: :none}.merge(opts)
+  def stub_request(opts, payload = {}, &block)
+    opts = { method: :get, proxy: :none }.merge(opts)
     request = RestClient::Request.new(opts)
     RestClient::Request.stub(:new).with(opts).and_return(request)
 
-    request.stub(:execute) {
+    request.stub(:execute) do
       block.call if block_given?
-    }
+    end
 
     request
   end
 
-  def stub_request_with_error opts, exc
-    opts = {method: :get, proxy: :none}.merge(opts)
+  def stub_request_with_error(opts, exc)
+    opts = { method: :get, proxy: :none }.merge(opts)
 
     request = RestClient::Request.new(opts)
     RestClient::Request.stub(:new).with(opts).and_return(request)
