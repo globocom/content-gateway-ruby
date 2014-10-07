@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    content_gateway (0.0.13)
+    content_gateway (0.0.14)
       activesupport
       json
       rest-client

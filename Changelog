@@ -1,3 +1,8 @@
+2014-10-07 [0.0.14]
+
+	* Ignoring cache after an internal server error when skip_cache = true.
+	* Mapping 5xx errors to ContentGateway::ServerError.
+
 2014-04-01 [0.0.13]
 
 	* Added support for HTTP 409 Conflict error.
