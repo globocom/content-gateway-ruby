@@ -74,24 +74,24 @@ module ContentGateway
       url     = request_data[:url]
       headers = request_data[:headers]
       payload = request_data[:payload]
-      stale_cache_key = "stale:#{url}"
       timeout_value = params[:timeout] || @config.timeout
+      @cache = Cache.new(url, method, params)
 
-      request = prepare_request(method, url, headers, payload, params[:skip_cache], stale_cache_key)
+      request = prepare_request(method, url, headers, payload)
 
-      if use_cache?(method, params[:skip_cache])
+      if @cache.use?
         begin
           Timeout.timeout(timeout_value) do
             @config.cache.fetch(url, expires_in: params[:expires_in] || @config.cache_expires_in) do
               @cache_status = "MISS"
               response = request.call
 
-              @config.cache.write(stale_cache_key, response, expires_in: params[:stale_expires_in] || @config.cache_stale_expires_in) if @cache_status == "MISS"
+              @config.cache.write(@cache.stale_key, response, expires_in: params[:stale_expires_in] || @config.cache_stale_expires_in) if @cache_status == "MISS"
               response
             end
           end
         rescue Timeout::Error => e
-          return @config.cache.read(stale_cache_key).tap do |cached|
+          return @config.cache.read(@cache.stale_key).tap do |cached|
             unless cached
               logger.info "#{prefix(500)} :: #{color_message(url)} - TIMEOUT (max #{timeout_value} secs)"
               raise ContentGateway::TimeoutError.new url, e
@@ -104,7 +104,7 @@ module ContentGateway
       end
     end
 
-    def prepare_request(method, url, headers, payload, skip_cache, stale_cache_key)
+    def prepare_request(method, url, headers, payload)
       lambda do
         data = { method: method, url: url, proxy: @config.try(:proxy) || :none }.tap do |h|
           h[:payload] = payload if payload.present?
@@ -140,8 +140,8 @@ module ContentGateway
           status_code = e6.http_code
           raise e6 if status_code < 500
 
-          if use_cache?(method, skip_cache)
-            return @config.cache.read(stale_cache_key).tap do |cached|
+          if @cache.use?
+            return @config.cache.read(@cache.stale_key).tap do |cached|
               unless cached
                 logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
                 raise ContentGateway::ServerError.new url, e6
@@ -205,10 +205,6 @@ module ContentGateway
           log
         end
       end.yield
-    end
-
-    def use_cache?(method, skip_cache)
-      !skip_cache && [:get, :head].include?(method)
     end
   end
 end
