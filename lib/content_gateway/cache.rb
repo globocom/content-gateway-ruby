@@ -1,5 +1,7 @@
 module ContentGateway
   class Cache
+    attr_reader :status
+
     def initialize(config, url, method, params = {})
       @config = config
       @url = url
@@ -31,7 +33,7 @@ module ContentGateway
         begin
           serve_stale
         rescue ContentGateway::StaleCacheNotAvailableError
-          raise ContentGateway::TimeoutError.new(@url, e)
+          raise ContentGateway::TimeoutError.new(@url, e, timeout)
         end
 
       rescue ContentGateway::ServerError => e

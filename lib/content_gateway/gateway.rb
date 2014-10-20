@@ -74,39 +74,39 @@ module ContentGateway
       url     = request_data[:url]
       headers = request_data[:headers]
       payload = request_data[:payload]
-      @cache = Cache.new(@config, url, method, params)
 
+      @cache = Cache.new(@config, url, method, params)
       @request = Request.new(method, url, headers, payload, @config.try(:proxy))
 
-      if @cache.use?
-        do_request_with_cache(params)
-      else
-        do_request_without_cache
-      end
-    end
-
-    def do_request_with_cache(params = {})
       begin
-        @cache.fetch(@request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
-      rescue ContentGateway::TimeoutError => e
-        timeout = params[:timeout] || @config.timeout
-        logger.info "#{prefix(e.status_code)} :: #{color_message(e.resource_url)} - TIMEOUT (max #{timeout} secs)"
+        if @cache.use?
+          do_request_with_cache(params)
+        else
+          do_request_without_cache
+        end
+
+      rescue ContentGateway::BaseError => e
+        message = "#{prefix(e.status_code)} :: #{color_message(e.resource_url)}"
+        message << " - #{e.info}" if e.info
+        logger.info message
+
         raise e
       end
     end
 
+    def do_request_with_cache(params = {})
+      @cache.fetch(@request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
+    end
+
     def do_request_without_cache
       @request.execute
-    rescue ContentGateway::ServerError => e
-      logger.info "#{prefix(e.status_code)} :: #{color_message(e.resource_url)} - SERVER ERROR"
-      raise e
     end
 
     def measure(message)
       result = nil
       time_elapsed = Benchmark.measure { result = yield }
       sufix = "finished in #{humanize_elapsed_time(time_elapsed.real)}. "
-      cache_log = (@cache_status || "HIT").to_s.ljust(4, " ")
+      cache_log = (@cache.status || "HIT").to_s.ljust(4, " ")
       log_message = "#{prefix(code(result))} :: #{cache_log} #{color_message(message)} #{sufix}"
 
       logger.info log_message
@@ -118,7 +118,7 @@ module ContentGateway
     end
 
     def humanize_elapsed_time(time_elapsed)
-      time_elapsed >= 1 ? "%.3f secs" % time_elapsed : "#{(time_elapsed * 1000).to_i}ms"
+      time_elapsed >= 1 ? "%.3f secs" % time_elapsed : "#{(time_elapsed * 1000).to_i} ms"
     end
 
     def prefix(code = nil)
