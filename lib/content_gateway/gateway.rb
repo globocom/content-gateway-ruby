@@ -79,11 +79,7 @@ module ContentGateway
       @request = Request.new(method, url, headers, payload, @config.try(:proxy))
 
       begin
-        if @cache.use?
-          do_request_with_cache(params)
-        else
-          do_request_without_cache
-        end
+        do_request(params)
 
       rescue ContentGateway::BaseError => e
         message = "#{prefix(e.status_code)} :: #{color_message(e.resource_url)}"
@@ -94,12 +90,12 @@ module ContentGateway
       end
     end
 
-    def do_request_with_cache(params = {})
-      @cache.fetch(@request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
-    end
-
-    def do_request_without_cache
-      @request.execute
+    def do_request(params = {})
+      if @cache.use?
+        @cache.fetch(@request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
+      else
+        @request.execute
+      end
     end
 
     def measure(message)

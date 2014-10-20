@@ -24,7 +24,7 @@ module ContentGateway
             @status = "MISS"
             response = request.execute
 
-            @config.cache.write(stale_key, response, expires_in: stale_expires_in) if @status == "MISS"
+            @config.cache.write(stale_key, response, expires_in: stale_expires_in)
             response
           end
         end

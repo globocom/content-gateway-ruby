@@ -2,8 +2,12 @@ require "spec_helper"
 
 describe ContentGateway::Cache do
   subject do
-    ContentGateway::Cache.new(nil, url, method, params)
+    ContentGateway::Cache.new(config, url, method, params)
   end
+
+  let(:config) { OpenStruct.new(cache: cache_store) }
+
+  let(:cache_store) { double("cache store", write: nil) }
 
   let(:url) { "/url" }
 
@@ -41,6 +45,81 @@ describe ContentGateway::Cache do
 
       it "should use cache" do
         expect(subject.use?).to eql true
+      end
+    end
+  end
+
+  describe "#fetch" do
+    let(:request) { double("request", execute: "data") }
+
+    context "when cache hits" do
+      before do
+        expect(Timeout).to receive(:timeout) do |timeout, &arg|
+          arg.call
+        end
+
+        expect(cache_store).to receive(:fetch).with(url, expires_in: 100).and_return("cached data")
+      end
+
+      it "should return the cached data" do
+        expect(subject.fetch(request, expires_in: 100)).to eql "cached data"
+      end
+    end
+
+    context "when cache misses" do
+      context "and request succeeds" do
+        before do
+          expect(Timeout).to receive(:timeout) do |timeout, &arg|
+            arg.call
+          end
+
+          expect(cache_store).to receive(:fetch) do |url, params, &arg|
+            arg.call
+          end
+        end
+
+        it "should set status to 'MISS'" do
+          subject.fetch(request)
+
+          expect(subject.status).to eql "MISS"
+        end
+
+        it "should return the request data" do
+          expect(subject.fetch(request)).to eql "data"
+        end
+
+        it "should write the request data to stale cache" do
+          expect(cache_store).to receive(:write).with("stale:/url", "data", expires_in: 15)
+
+          subject.fetch(request, stale_expires_in: 15)
+        end
+      end
+    end
+  end
+
+  describe "#serve_stale" do
+    before do
+      expect(cache_store).to receive(:read).with("stale:/url").and_return(return_value)
+    end
+
+    context "when data are successfully read from stale cache" do
+      let(:return_value) { "stale cache data" }
+
+      it "should return the stale data" do
+        expect(subject.serve_stale).to eql "stale cache data"
+      end
+
+      it "should set status to 'STALE'" do
+        subject.serve_stale
+        expect(subject.status).to eql "STALE"
+      end
+    end
+
+    context "when data can't be read from stale cache" do
+      let(:return_value) { nil }
+
+      it "should raise ContentGateway::StaleCacheNotAvailableError" do
+        expect { subject.serve_stale }.to raise_error ContentGateway::StaleCacheNotAvailableError
       end
     end
   end
