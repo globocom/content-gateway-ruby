@@ -76,73 +76,30 @@ module ContentGateway
       payload = request_data[:payload]
       @cache = Cache.new(@config, url, method, params)
 
-      request = prepare_request(method, url, headers, payload)
+      @request = Request.new(method, url, headers, payload, @config.try(:proxy))
 
       if @cache.use?
-        begin
-          @cache.fetch(request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
-        rescue ContentGateway::TimeoutError => e
-          timeout = params[:timeout] || @config.timeout
-          logger.info "#{prefix(500)} :: #{color_message(url)} - TIMEOUT (max #{timeout} secs)"
-          raise e
-        end
+        do_request_with_cache(params)
       else
-        request.call
+        do_request_without_cache
       end
     end
 
-    def prepare_request(method, url, headers, payload)
-      lambda do
-        data = { method: method, url: url, proxy: @config.try(:proxy) || :none }.tap do |h|
-          h[:payload] = payload if payload.present?
-          h[:headers] = headers if headers.present?
-        end
-
-        request = RestClient::Request.new(data)
-
-        begin
-          request.execute
-
-        rescue RestClient::ResourceNotFound => e1
-          logger.info "#{prefix(404)} :: #{color_message(url)}"
-          raise ContentGateway::ResourceNotFound.new url, e1
-
-        rescue RestClient::Unauthorized => e2
-          logger.info "#{prefix(401)} :: #{color_message(url)}"
-          raise ContentGateway::UnauthorizedError.new url, e2
-
-        rescue RestClient::UnprocessableEntity => e3
-          logger.info "#{prefix(422)} :: #{color_message(url)}"
-          raise ContentGateway::ValidationError.new url, e3
-
-        rescue RestClient::Forbidden => e4
-          logger.info "#{prefix(403)} :: #{color_message(url)}"
-          raise ContentGateway::Forbidden.new url, e4
-
-        rescue RestClient::Conflict => e5
-          logger.info "#{prefix(409)} :: #{color_message(url)}"
-          raise ContentGateway::ConflictError.new url, e5
-
-        rescue RestClient::Exception => e6
-          status_code = e6.http_code
-          raise e6 if status_code < 500
-
-          if @cache.use?
-            begin
-              @cache.serve_stale
-            rescue ContentGateway::StaleCacheNotAvailableError
-              logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
-              raise ContentGateway::ServerError.new(url, e6)
-            end
-          else
-            logger.info "#{prefix(status_code)} :: #{color_message(url)} - SERVER ERROR"
-            raise ContentGateway::ServerError.new url, e6
-          end
-        rescue StandardError => e7
-          logger.info "#{prefix(500)} :: #{color_message(url)}"
-          raise ContentGateway::ConnectionFailure.new url, e7
-        end
+    def do_request_with_cache(params = {})
+      begin
+        @cache.fetch(@request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
+      rescue ContentGateway::TimeoutError => e
+        timeout = params[:timeout] || @config.timeout
+        logger.info "#{prefix(e.status_code)} :: #{color_message(e.resource_url)} - TIMEOUT (max #{timeout} secs)"
+        raise e
       end
+    end
+
+    def do_request_without_cache
+      @request.execute
+    rescue ContentGateway::ServerError => e
+      logger.info "#{prefix(e.status_code)} :: #{color_message(e.resource_url)} - SERVER ERROR"
+      raise e
     end
 
     def measure(message)

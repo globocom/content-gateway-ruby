@@ -20,17 +20,25 @@ module ContentGateway
         Timeout.timeout(timeout) do
           @config.cache.fetch(@url, expires_in: expires_in) do
             @status = "MISS"
-            response = request.call
+            response = request.execute
 
             @config.cache.write(stale_key, response, expires_in: stale_expires_in) if @status == "MISS"
             response
           end
         end
+
       rescue Timeout::Error => e
         begin
           serve_stale
         rescue ContentGateway::StaleCacheNotAvailableError
           raise ContentGateway::TimeoutError.new(@url, e)
+        end
+
+      rescue ContentGateway::ServerError => e
+        begin
+          serve_stale
+        rescue ContentGateway::StaleCacheNotAvailableError
+          raise e
         end
       end
     end

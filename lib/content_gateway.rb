@@ -19,4 +19,5 @@ end
 require "content_gateway/version"
 require "content_gateway/exceptions"
 require "content_gateway/cache"
+require "content_gateway/request"
 require "content_gateway/gateway"
