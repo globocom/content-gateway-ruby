@@ -74,30 +74,17 @@ module ContentGateway
       url     = request_data[:url]
       headers = request_data[:headers]
       payload = request_data[:payload]
-      timeout_value = params[:timeout] || @config.timeout
-      @cache = Cache.new(url, method, params)
+      @cache = Cache.new(@config, url, method, params)
 
       request = prepare_request(method, url, headers, payload)
 
       if @cache.use?
         begin
-          Timeout.timeout(timeout_value) do
-            @config.cache.fetch(url, expires_in: params[:expires_in] || @config.cache_expires_in) do
-              @cache_status = "MISS"
-              response = request.call
-
-              @config.cache.write(@cache.stale_key, response, expires_in: params[:stale_expires_in] || @config.cache_stale_expires_in) if @cache_status == "MISS"
-              response
-            end
-          end
-        rescue Timeout::Error => e
-          return @config.cache.read(@cache.stale_key).tap do |cached|
-            unless cached
-              logger.info "#{prefix(500)} :: #{color_message(url)} - TIMEOUT (max #{timeout_value} secs)"
-              raise ContentGateway::TimeoutError.new url, e
-            end
-            @cache_status = "STALE"
-          end
+          @cache.fetch(request, timeout: params[:timeout], expires_in: params[:expires_in], stale_expires_in: params[:stale_expires_in])
+        rescue ContentGateway::TimeoutError => e
+          timeout = params[:timeout] || @config.timeout
+          logger.info "#{prefix(500)} :: #{color_message(url)} - TIMEOUT (max #{timeout} secs)"
+          raise e
         end
       else
         request.call
@@ -141,12 +128,11 @@ module ContentGateway
           raise e6 if status_code < 500
 
           if @cache.use?
-            return @config.cache.read(@cache.stale_key).tap do |cached|
-              unless cached
-                logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
-                raise ContentGateway::ServerError.new url, e6
-              end
-              @cache_status = "STALE"
+            begin
+              @cache.serve_stale
+            rescue ContentGateway::StaleCacheNotAvailableError
+              logger.info "#{prefix(500)} :: #{color_message(url)} - SERVER ERROR"
+              raise ContentGateway::ServerError.new(url, e6)
             end
           else
             logger.info "#{prefix(status_code)} :: #{color_message(url)} - SERVER ERROR"

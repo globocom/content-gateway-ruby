@@ -1,6 +1,7 @@
 module ContentGateway
   class Cache
-    def initialize(url, method, params = {})
+    def initialize(config, url, method, params = {})
+      @config = config
       @url = url
       @method = method.to_sym
       @skip_cache = params[:skip_cache] || false
@@ -8,6 +9,37 @@ module ContentGateway
 
     def use?
       !@skip_cache && [:get, :head].include?(@method)
+    end
+
+    def fetch(request, params = {})
+      timeout = params[:timeout] || @config.timeout
+      expires_in = params[:expires_in] || @config.cache_expires_in
+      stale_expires_in = params[:stale_expires_in] || @config.cache_stale_expires_in
+
+      begin
+        Timeout.timeout(timeout) do
+          @config.cache.fetch(@url, expires_in: expires_in) do
+            @status = "MISS"
+            response = request.call
+
+            @config.cache.write(stale_key, response, expires_in: stale_expires_in) if @status == "MISS"
+            response
+          end
+        end
+      rescue Timeout::Error => e
+        begin
+          serve_stale
+        rescue ContentGateway::StaleCacheNotAvailableError
+          raise ContentGateway::TimeoutError.new(@url, e)
+        end
+      end
+    end
+
+    def serve_stale
+      @config.cache.read(stale_key).tap do |cached|
+        raise ContentGateway::StaleCacheNotAvailableError.new unless cached
+        @status = "STALE"
+      end
     end
 
     def stale_key

@@ -26,4 +26,7 @@ module ContentGateway
       @errors = JSON.parse(response) if response.present?
     end
   end
+
+  class StaleCacheNotAvailableError < StandardError
+  end
 end

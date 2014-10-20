@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe ContentGateway::Cache do
   subject do
-    ContentGateway::Cache.new(url, method, params)
+    ContentGateway::Cache.new(nil, url, method, params)
   end
 
   let(:url) { "/url" }
