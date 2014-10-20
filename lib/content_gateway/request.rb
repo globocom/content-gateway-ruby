@@ -1,16 +1,16 @@
 module ContentGateway
   class Request
-    def initialize(method, url, headers, payload, proxy)
+    def initialize(method, url, headers = {}, payload = {}, proxy = nil)
       data = { method: method, url: url, proxy: proxy || :none }.tap do |h|
         h[:payload] = payload if payload.present?
         h[:headers] = headers if headers.present?
       end
 
-      @request = RestClient::Request.new(data)
+      @client = RestClient::Request.new(data)
     end
 
     def execute
-      @request.execute
+      @client.execute
 
     rescue RestClient::ResourceNotFound => e1
       raise ContentGateway::ResourceNotFound.new url, e1
@@ -42,7 +42,7 @@ module ContentGateway
     private
 
     def url
-      @request.url
+      @client.url
     end
   end
 end
