@@ -3,7 +3,7 @@ require "spec_helper"
 describe ContentGateway::Gateway do
   let! :url_generator do
     url_generator = double('url_generator')
-    url_generator.stub(:generate).with(resource_path, {}).and_return("http://api.com/servico")
+    allow(url_generator).to receive(:generate).with(resource_path, {}).and_return("http://api.com/servico")
     url_generator
   end
 
@@ -50,7 +50,7 @@ describe ContentGateway::Gateway do
 
   describe ".new" do
     it "default_params deveria ser opcional" do
-      ContentGateway::Gateway.new("API XPTO", config, url_generator).should be_kind_of(ContentGateway::Gateway)
+      expect(ContentGateway::Gateway.new("API XPTO", config, url_generator)).to be_kind_of(ContentGateway::Gateway)
     end
   end
 
@@ -83,7 +83,7 @@ describe ContentGateway::Gateway do
       context "no modo com cache" do
         it "deveria cachear as chamadas" do
           cache_store = double("cache_store")
-          cache_store.should_receive(:fetch).with(resource_url, expires_in: default_expires_in)
+          expect(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in)
           config.cache = cache_store
 
           gateway.get resource_path
@@ -93,8 +93,8 @@ describe ContentGateway::Gateway do
           stub_request(url: resource_url, proxy: config.proxy, headers: headers) { cached_response }
 
           cache_store = double("cache_store")
-          cache_store.should_receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
-          cache_store.should_receive(:write).with(stale_cache_key, cached_response, expires_in: default_stale_expires_in)
+          expect(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+          expect(cache_store).to receive(:write).with(stale_cache_key, cached_response, expires_in: default_stale_expires_in)
           config.cache = cache_store
 
           gateway.get resource_path
@@ -108,17 +108,17 @@ describe ContentGateway::Gateway do
           end
 
           it "deveria aceitar um 'timeout' para sobreescrever o padrão" do
-            Timeout.should_receive(:timeout).with(timeout)
+            expect(Timeout).to receive(:timeout).with(timeout)
             gateway.get resource_path, timeout: timeout
           end
 
           it "deveria cortar requests que passem do tempo configurado" do
-            -> { gateway.get resource_path, timeout: timeout }.should raise_error ContentGateway::TimeoutError
+            expect { gateway.get resource_path, timeout: timeout }.to raise_error ContentGateway::TimeoutError
           end
 
           it "deveria cortar os acessos ao cache que passem do tempo configurado" do
-            config.cache.stub(:fetch) { sleep(1) }
-            -> { gateway.get resource_path, timeout: timeout }.should raise_error ContentGateway::TimeoutError
+            allow(config.cache).to receive(:fetch) { sleep(1) }
+            expect { gateway.get resource_path, timeout: timeout }.to raise_error ContentGateway::TimeoutError
           end
         end
 
@@ -126,13 +126,13 @@ describe ContentGateway::Gateway do
           context "timeout" do
             before do
               cache_store = double("cache_store")
-              cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_raise(Timeout::Error)
-              cache_store.stub(:read).with(stale_cache_key).and_return(cached_response)
+              allow(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_raise(Timeout::Error)
+              allow(cache_store).to receive(:read).with(stale_cache_key).and_return(cached_response)
               config.cache = cache_store
             end
 
             it "deveria servir stale" do
-              gateway.get(resource_path, timeout: timeout).should eql "cached response"
+              expect(gateway.get(resource_path, timeout: timeout)).to eql "cached response"
             end
           end
 
@@ -141,13 +141,13 @@ describe ContentGateway::Gateway do
               stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new(nil, 500))
 
               cache_store = double("cache_store")
-              cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
-              cache_store.stub(:read).with(stale_cache_key).and_return(cached_response)
+              allow(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+              allow(cache_store).to receive(:read).with(stale_cache_key).and_return(cached_response)
               config.cache = cache_store
             end
 
             it "deveria servir stale" do
-              gateway.get(resource_path).should eql "cached response"
+              expect(gateway.get(resource_path)).to eql "cached response"
             end
           end
         end
@@ -156,7 +156,7 @@ describe ContentGateway::Gateway do
       context "no modo skip cache" do
         it "deveria não cachear as chamadas" do
           cache_store = double("cache_store")
-          cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in)
+          expect(cache_store).not_to receive(:fetch).with(resource_url, expires_in: default_expires_in)
           config.cache = cache_store
 
           gateway.get resource_path, skip_cache: true
@@ -172,7 +172,7 @@ describe ContentGateway::Gateway do
           end
 
           it "deveria ignorar o parâmetro 'timeout'" do
-            Timeout.should_not_receive(:timeout).with(timeout)
+            expect(Timeout).not_to receive(:timeout).with(timeout)
             gateway.get resource_path, skip_cache: true, timeout: timeout
           end
         end
@@ -182,40 +182,40 @@ describe ContentGateway::Gateway do
             stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new(nil, 500))
 
             cache_store = double("cache_store")
-            cache_store.should_not_receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+            expect(cache_store).not_to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
             config.cache = cache_store
           end
 
           it "deveria ignorar o cache" do
-            -> { gateway.get(resource_path, skip_cache: true) }.should raise_error ContentGateway::ServerError
+            expect { gateway.get(resource_path, skip_cache: true) }.to raise_error ContentGateway::ServerError
           end
         end
       end
 
       it "deveria lançar uma exception de NotFound em caso de erro 404" do
         stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::ResourceNotFound.new)
-        -> { gateway.get resource_path }.should raise_error ContentGateway::ResourceNotFound
+        expect { gateway.get resource_path }.to raise_error ContentGateway::ResourceNotFound
       end
 
       it "deveria lançar uma exception de Conflict em caso de erro 409" do
         stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::Conflict.new)
-        -> { gateway.get resource_path }.should raise_error ContentGateway::ConflictError
+        expect { gateway.get resource_path }.to raise_error ContentGateway::ConflictError
       end
 
       it "deveria lançar um exception de ServerError em caso de erro 500" do
         stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, RestClient::Exception.new(nil, 500))
-        -> { gateway.get resource_path }.should raise_error ContentGateway::ServerError
+        expect { gateway.get resource_path }.to raise_error ContentGateway::ServerError
       end
 
       it "deveria lançar um exception de ConnectionFailure em caso de outros erros não mapeados" do
         stub_request_with_error({ method: :get, url: resource_url, proxy: config.proxy, headers: headers }, SocketError.new)
-        -> { gateway.get resource_path }.should raise_error ContentGateway::ConnectionFailure
+        expect { gateway.get resource_path }.to raise_error ContentGateway::ConnectionFailure
       end
 
       it "deveria aceitar um 'expires_in' para sobreescrever o padrão" do
         expires_in = 3.minutes
         cache_store = double("cache_store")
-        cache_store.should_receive(:fetch).with(resource_url, expires_in: expires_in)
+        expect(cache_store).to receive(:fetch).with(resource_url, expires_in: expires_in)
         config.cache = cache_store
         gateway.get resource_path, expires_in: expires_in
       end
@@ -225,8 +225,8 @@ describe ContentGateway::Gateway do
 
         stale_expires_in = 5.minutes
         cache_store = double("cache_store")
-        cache_store.stub(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
-        cache_store.should_receive(:write).with(stale_cache_key, cached_response, expires_in: stale_expires_in)
+        allow(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
+        expect(cache_store).to receive(:write).with(stale_cache_key, cached_response, expires_in: stale_expires_in)
         config.cache = cache_store
 
         gateway.get resource_path, stale_expires_in: stale_expires_in
@@ -261,22 +261,22 @@ describe ContentGateway::Gateway do
 
   describe "#get_json" do
     it "deveria converter o resultado do 'get' para JSON" do
-      gateway.should_receive(:get).with(resource_path, params).and_return({ "a" => 1 }.to_json)
-      gateway.get_json(resource_path, params).should eql("a" => 1)
+      expect(gateway).to receive(:get).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      expect(gateway.get_json(resource_path, params)).to eql("a" => 1)
     end
   end
 
   describe "#post_json" do
     it "deveria converter o resultado do 'post' para JSON" do
-      gateway.should_receive(:post).with(resource_path, params).and_return({ "a" => 1 }.to_json)
-      gateway.post_json(resource_path, params).should eql("a" => 1)
+      expect(gateway).to receive(:post).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      expect(gateway.post_json(resource_path, params)).to eql("a" => 1)
     end
   end
 
   describe "#put_json" do
     it "deveria converter o resultado do 'put' para JSON" do
-      gateway.should_receive(:put).with(resource_path, params).and_return({ "a" => 1 }.to_json)
-      gateway.put_json(resource_path, params).should eql("a" => 1)
+      expect(gateway).to receive(:put).with(resource_path, params).and_return({ "a" => 1 }.to_json)
+      expect(gateway.put_json(resource_path, params)).to eql("a" => 1)
     end
   end
 
@@ -296,22 +296,22 @@ describe ContentGateway::Gateway do
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
       stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
-      -> { gateway.post resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
+      expect { gateway.post resource_path, payload: payload }.to raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 401" do
       stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Unauthorized.new)
-      -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::UnauthorizedError)
+      expect { gateway.post resource_path, payload: payload }.to raise_error(ContentGateway::UnauthorizedError)
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
       stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
-      -> { gateway.post resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
+      expect { gateway.post resource_path, payload: payload }.to raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
       stub_request_with_error({ method: :post, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
-      -> { gateway.post resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
+      expect { gateway.post resource_path, payload: payload }.to raise_error ContentGateway::ConnectionFailure
     end
   end
 
@@ -331,22 +331,22 @@ describe ContentGateway::Gateway do
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
       stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
-      -> { gateway.delete resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
+      expect { gateway.delete resource_path, payload: payload }.to raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 401" do
       stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Unauthorized.new)
-      -> { gateway.delete resource_path, payload: payload }.should raise_error(ContentGateway::UnauthorizedError)
+      expect { gateway.delete resource_path, payload: payload }.to raise_error(ContentGateway::UnauthorizedError)
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
       stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
-      -> { gateway.delete resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
+      expect { gateway.delete resource_path, payload: payload }.to raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
       stub_request_with_error({ method: :delete, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
-      -> { gateway.delete resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
+      expect { gateway.delete resource_path, payload: payload }.to raise_error ContentGateway::ConnectionFailure
     end
   end
 
@@ -366,22 +366,22 @@ describe ContentGateway::Gateway do
 
     it "deveria lançar uma exception de NotFound em caso de 404" do
       stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::ResourceNotFound.new)
-      -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ResourceNotFound
+      expect { gateway.put resource_path, payload: payload }.to raise_error ContentGateway::ResourceNotFound
     end
 
     it "deveria lançar uma exception de UnprocessableEntity em caso de 422" do
       stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::UnprocessableEntity)
-      -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ValidationError
+      expect { gateway.put resource_path, payload: payload }.to raise_error ContentGateway::ValidationError
     end
 
     it "deveria lançar uma exception de Forbidden em caso de 403" do
       stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, RestClient::Forbidden.new)
-      -> { gateway.put resource_path, payload: payload }.should raise_error(ContentGateway::Forbidden)
+      expect { gateway.put resource_path, payload: payload }.to raise_error(ContentGateway::Forbidden)
     end
 
     it "deveria lançar um exception de ConnectionFailure em caso de 500" do
       stub_request_with_error({ method: :put, url: resource_url, proxy: config.proxy, payload: payload }, SocketError.new)
-      -> { gateway.put resource_path, payload: payload }.should raise_error ContentGateway::ConnectionFailure
+      expect { gateway.put resource_path, payload: payload }.to raise_error ContentGateway::ConnectionFailure
     end
   end
 
@@ -390,9 +390,9 @@ describe ContentGateway::Gateway do
   def stub_request(opts, payload = {}, &block)
     opts = { method: :get, proxy: :none }.merge(opts)
     request = RestClient::Request.new(opts)
-    RestClient::Request.stub(:new).with(opts).and_return(request)
+    allow(RestClient::Request).to receive(:new).with(opts).and_return(request)
 
-    request.stub(:execute) do
+    allow(request).to receive(:execute) do
       block.call if block_given?
     end
 
@@ -403,8 +403,8 @@ describe ContentGateway::Gateway do
     opts = { method: :get, proxy: :none }.merge(opts)
 
     request = RestClient::Request.new(opts)
-    RestClient::Request.stub(:new).with(opts).and_return(request)
+    allow(RestClient::Request).to receive(:new).with(opts).and_return(request)
 
-    request.stub(:execute).and_raise(exc)
+    allow(request).to receive(:execute).and_raise(exc)
   end
 end
