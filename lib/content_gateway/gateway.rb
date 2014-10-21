@@ -75,8 +75,8 @@ module ContentGateway
       headers = request_data[:headers]
       payload = request_data[:payload]
 
-      @cache = Cache.new(@config, url, method, params)
-      @request = Request.new(method, url, headers, payload, @config.try(:proxy))
+      @cache = ContentGateway::Cache.new(@config, url, method, params)
+      @request = ContentGateway::Request.new(method, url, headers, payload, @config.try(:proxy))
 
       begin
         do_request(params)
