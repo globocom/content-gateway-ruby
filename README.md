@@ -131,4 +131,4 @@ gateway.delete("/api/delete_example", id: "100")
 
 ## License
 
-Copyright (c) 2014 Globo.com - Webmedia. See [COPYING](https://github.com/globocom/content_gateway/blob/master/COPYING) for more details.
+Copyright (c) 2014 Globo.com - Webmedia. See [LICENSE.txt](https://github.com/globocom/content-gateway-ruby/blob/master/LICENSE.txt) for more details.
