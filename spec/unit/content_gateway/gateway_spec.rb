@@ -111,5 +111,11 @@ describe ContentGateway::Gateway do
         expect(subject.delete(path, cache_params.merge(payload: payload))).to eql data
       end
     end
+
+    describe "#delete_json" do
+      it "should parse the response as JSON" do
+        expect(subject.delete_json(path, cache_params.merge(payload: payload))).to eql JSON.parse(data)
+      end
+    end
   end
 end

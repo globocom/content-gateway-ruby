@@ -63,6 +63,10 @@ module ContentGateway
       JSON.parse put(resource_path, params)
     end
 
+    def delete_json(resource_path, params = {})
+      JSON.parse delete(resource_path, params)
+    end
+
     def generate_url(resource_path, params = {})
       @url_generator.generate(resource_path, params)
     end
