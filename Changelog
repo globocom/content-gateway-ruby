@@ -1,3 +1,8 @@
+2014-10-21 [0.1.0]
+
+	* Adding delete_json method.
+	* A lot of refactoring.
+
 2014-10-07 [0.0.14]
 
 	* Ignoring cache after an internal server error when skip_cache = true.
