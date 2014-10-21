@@ -115,6 +115,8 @@ gateway.delete("/api/delete_example", id: "100")
 
 ## Authors
 
+- [Túlio Ornelas](https://github.com/tulios)
+- [Roberto Soares](https://github.com/roberto)
 - [Emerson Macedo](https://github.com/emerleite)
 - [Guilherme Garnier](https://github.com/ggarnier)
 - [Daniel Martins](https://github.com/danielfm)
