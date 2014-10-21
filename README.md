@@ -128,3 +128,7 @@ gateway.delete("/api/delete_example", id: "100")
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## License
+
+Copyright (c) 2014 Globo.com - Webmedia. See [COPYING](https://github.com/globocom/content_gateway/blob/master/COPYING) for more details.
