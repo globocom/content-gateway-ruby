@@ -7,7 +7,7 @@ PATH
       rest-client
 
 GEM
-  remote: http://artifactory.globoi.com/artifactory/api/gems/gem-repos/
+  remote: https://rubygems.org/
   specs:
     activesupport (4.0.2)
       i18n (~> 0.6, >= 0.6.4)

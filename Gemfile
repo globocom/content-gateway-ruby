@@ -1,4 +1,4 @@
-source 'http://artifactory.globoi.com/artifactory/api/gems/gem-repos/'
+source 'https://rubygems.org'
+ruby '2.0.0'
 
-# Specify your gem's dependencies in content-gateway.gemspec
 gemspec
