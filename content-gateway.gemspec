@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["ornelas.tulio@gmail.com", "roberto.tech@gmail.com", "emerleite@gmail.com", "guilherme.garnier@gmail.com", "daniel.tritone@gmail.com", "biribarj@gmail.com", "celio.la@gmail.com"]
   gem.description   = %q{An easy way to get external content with two cache levels. The first is a performance cache and second is the stale}
   gem.summary       = %q{Content Gateway}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/globocom/content-gateway-ruby"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
