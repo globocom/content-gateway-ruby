@@ -75,5 +75,11 @@ module ContentGateway
     end
   end
 
+  class OpenSSLFailure < BaseError
+    def initialize(resource_url, wrapped_exception = nil, info)
+      super(resource_url, wrapped_exception, 406, info)
+    end
+  end
+
   class StaleCacheNotAvailableError < StandardError; end
 end

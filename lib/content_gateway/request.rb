@@ -1,11 +1,11 @@
 module ContentGateway
   class Request
-    def initialize(method, url, headers = {}, payload = {}, proxy = nil)
+    def initialize(method, url, headers = {}, payload = {}, proxy = nil, params = {})
       data = { method: method, url: url, proxy: proxy || :none }.tap do |h|
         h[:payload] = payload if payload.present?
         h[:headers] = headers if headers.present?
+        h = load_ssl_params(h, params) if params.has_key?(:ssl_certificate)
       end
-
       @client = RestClient::Request.new(data)
     end
 
@@ -40,6 +40,24 @@ module ContentGateway
     end
 
     private
+
+    def load_ssl_params h, params
+      client_cert_file = File.read params[:ssl_certificate][:ssl_client_cert]
+      h[:ssl_client_cert] = OpenSSL::X509::Certificate.new(client_cert_file)
+
+      client_cert_key = File.read params[:ssl_certificate][:ssl_client_key]
+      h[:ssl_client_key] = OpenSSL::PKey::RSA.new(client_cert_key)
+
+      h[:ssl_ca_file] = params[:ssl_certificate][:ssl_ca_file]
+      h[:verify_ssl] = OpenSSL::SSL::VERIFY_PEER
+      h
+
+    rescue OpenSSL::X509::CertificateError => e1
+      raise ContentGateway::OpenSSLFailure.new h[:url], e1, "invalid ssl client cert"
+
+    rescue OpenSSL::PKey::RSAError => e2
+      raise ContentGateway::OpenSSLFailure.new h[:url], e2, "invalid ssl client key"
+    end
 
     def url
       @client.url

@@ -20,7 +20,8 @@ module ContentGateway
         data = { method: :get, url: url }.tap do |h|
           h[:headers] = headers if headers.present?
         end
-        send_request(data, skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout)
+        request_params = { skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout }.merge(params)
+        send_request(data, request_params)
       end
     end
 
@@ -80,7 +81,7 @@ module ContentGateway
       payload = request_data[:payload]
 
       @cache = ContentGateway::Cache.new(@config, url, method, params)
-      @request = ContentGateway::Request.new(method, url, headers, payload, @config.try(:proxy))
+      @request = ContentGateway::Request.new(method, url, headers, payload, @config.try(:proxy), params)
 
       begin
         do_request(params)
