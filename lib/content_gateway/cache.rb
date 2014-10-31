@@ -23,6 +23,7 @@ module ContentGateway
           @config.cache.fetch(@url, expires_in: expires_in) do
             @status = "MISS"
             response = request.execute
+            response = String.new(response) if response
 
             @config.cache.write(stale_key, response, expires_in: stale_expires_in)
             response

@@ -84,6 +84,11 @@ describe ContentGateway::Cache do
           expect(subject.status).to eql "MISS"
         end
 
+        it "should convert request response into string" do
+          expect(String).to receive(:new).with("data")
+          subject.fetch(request)
+        end
+
         it "should return the request data" do
           expect(subject.fetch(request)).to eql "data"
         end
