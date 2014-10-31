@@ -85,6 +85,7 @@ Optional parameters are supported:
 - `stale_expires_in`: overwrites the default stale cache expiration time
 - `skip_cache`: if set to `true`, ignores cache and stale cache
 - `headers`: a hash with request headers
+- `ssl_certificate`: a hash with ssl cert and key (see ssl support section below)
 
 Every other parameter is passed to URLGenerator `generate` method (like query string parameters).
 
@@ -100,7 +101,7 @@ gateway.get_json("/path.json", skip_cache: true)
 
 POST, PUT and DELETE verbs are also supported, but ignore cache and stale cache.
 The gateway object offers the equivalent methods for these verbs (`post`, `post_json`, `put`, `put_json`, `delete` and `delete_json`).
-The only optional parameter supported by these methods is `payload`.
+The only optional parameters supported by these methods are `payload` and `ssl_certificate`.
 Every other parameter is passed to URLGenerator `generate` method (like query string parameters).
 
 Examples:
@@ -111,6 +112,25 @@ gateway.post("/api/post_example", payload: { param1: "value" })
 gateway.put_json("/api/put_example.json", query_string_param: "value")
 
 gateway.delete("/api/delete_example", id: "100")
+```
+
+### SSL Support
+
+You can use ssl certificates to run all supported requests (get, post, put, delete).
+
+Just pass the path of cert file (x509 certificate) and key file (rsa key) to the request method. See exemple below:
+
+```ruby
+ssl = {
+  ssl_client_cert: "path/client.cert",
+  ssl_client_key: "path/client.key"
+}
+
+gateway.get("/path", timeout: 3, ssl_certificate: ssl)
+
+gateway.get_json("/path.json", skip_cache: true, ssl_certificate: ssl)
+
+gateway.post("/api/post_example", payload: { param1: "value" }, ssl_certificate: ssl)
 ```
 
 ## Authors
