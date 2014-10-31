@@ -1,3 +1,8 @@
+2014-10-31 [0.2.0]
+
+	* Adding ssl support in requests
+	* Solving cache problem when using ssl in requests. The solution was convert the result of the request to string before save the cache value.
+
 2014-10-21 [0.1.0]
 
 	* Adding delete_json method.
