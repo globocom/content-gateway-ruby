@@ -29,7 +29,7 @@ module ContentGateway
 
     rescue RestClient::Exception => e6
       status_code = e6.http_code
-      if status_code < 500
+      if status_code && status_code < 500
         raise e6
       else
         raise ContentGateway::ServerError.new url, e6, status_code
@@ -43,14 +43,15 @@ module ContentGateway
 
     def load_ssl_params h, params
       client_cert_file = File.read params[:ssl_certificate][:ssl_client_cert]
-      h[:ssl_client_cert] = OpenSSL::X509::Certificate.new(client_cert_file)
-
       client_cert_key = File.read params[:ssl_certificate][:ssl_client_key]
-      h[:ssl_client_key] = OpenSSL::PKey::RSA.new(client_cert_key)
 
-      h[:ssl_ca_file] = params[:ssl_certificate][:ssl_ca_file]
-      h[:verify_ssl] = OpenSSL::SSL::VERIFY_PEER
+      h[:ssl_client_cert] = OpenSSL::X509::Certificate.new(client_cert_file)
+      h[:ssl_client_key] = OpenSSL::PKey::RSA.new(client_cert_key)
+      h[:verify_ssl] = OpenSSL::SSL::VERIFY_NONE
       h
+
+    rescue Errno::ENOENT => e0
+      raise ContentGateway::OpenSSLFailure.new h[:url], e0
 
     rescue OpenSSL::X509::CertificateError => e1
       raise ContentGateway::OpenSSLFailure.new h[:url], e1, "invalid ssl client cert"

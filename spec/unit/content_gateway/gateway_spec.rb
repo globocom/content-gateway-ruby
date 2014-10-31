@@ -23,7 +23,7 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:get, "url", headers, nil, config.proxy).
+        with(:get, "url", headers, nil, config.proxy, cache_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
@@ -48,7 +48,7 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:post, "url", nil, payload, config.proxy).
+        with(:post, "url", nil, payload, config.proxy, cache_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
@@ -73,7 +73,7 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:put, "url", nil, payload, config.proxy).
+        with(:put, "url", nil, payload, config.proxy, cache_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
@@ -98,7 +98,7 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:delete, "url", nil, payload, config.proxy).
+        with(:delete, "url", nil, payload, config.proxy, cache_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).

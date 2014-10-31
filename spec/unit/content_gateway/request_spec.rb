@@ -101,5 +101,57 @@ describe ContentGateway::Request do
         end
       end
     end
+
+    context "requests with SSL" do
+
+      let(:ssl_certificate_params) { { ssl_client_cert: "test", ssl_client_key: "test"} }
+      let(:restclient_ssl_params) { { :ssl_client_cert=>"cert", :ssl_client_key=>"key", :verify_ssl=>0 } }
+      let(:request_params_ssl) { request_params.merge! restclient_ssl_params }
+
+      let :subject_ssl do
+        ContentGateway::Request.new(:get, "/url", {}, {}, nil, ssl_certificate: ssl_certificate_params)
+      end
+
+      context "when request is successful" do
+        before do
+          allow(File).to receive(:read).with("test").and_return("cert_content")
+          allow(OpenSSL::X509::Certificate).to receive(:new).with("cert_content").and_return("cert")
+          allow(OpenSSL::PKey::RSA).to receive(:new).with("cert_content").and_return("key")
+          allow(RestClient::Request).to receive(:new).with(request_params_ssl).and_return(client)
+        end
+
+        it "should setup ssl certificates" do
+          expect(OpenSSL::X509::Certificate).to receive(:new).with("cert_content")
+          expect(OpenSSL::PKey::RSA).to receive(:new).with("cert_content")
+          subject_ssl.execute
+        end
+
+        it "should setup request with ssl params" do
+          expect(RestClient::Request).to receive(:new).with(request_params_ssl)
+          subject_ssl.execute
+        end
+
+        it "should return request data with ssl params" do
+          expect(subject_ssl.execute).to eql "data"
+        end
+      end
+
+      context "when request fails" do
+        it "should return ssl failure error if certificate was not found" do
+          expect { subject_ssl.execute }.to raise_error(ContentGateway::OpenSSLFailure).with_message("/url - No such file or directory - test")
+        end
+
+        it "should return ssl failure error if certificate cert was not valid" do
+          allow(File).to receive(:read).with("test").and_return("cert_content")
+          expect { subject_ssl.execute }.to raise_error(ContentGateway::OpenSSLFailure).with_message("/url - not enough data - invalid ssl client cert")
+        end
+
+        it "should return ssl failure error if certificate key was not valid" do
+          allow(File).to receive(:read).with("test").and_return("cert_content")
+          allow(OpenSSL::X509::Certificate).to receive(:new).with("cert_content").and_return("cert")
+          expect { subject_ssl.execute }.to raise_error(ContentGateway::OpenSSLFailure).with_message("/url - Neither PUB key nor PRIV key: not enough data - invalid ssl client key")
+        end
+      end
+    end
   end
 end

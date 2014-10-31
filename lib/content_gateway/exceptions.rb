@@ -76,7 +76,7 @@ module ContentGateway
   end
 
   class OpenSSLFailure < BaseError
-    def initialize(resource_url, wrapped_exception = nil, info)
+    def initialize(resource_url, wrapped_exception = nil, info=nil)
       super(resource_url, wrapped_exception, 406, info)
     end
   end
