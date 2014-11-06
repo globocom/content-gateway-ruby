@@ -1,3 +1,7 @@
+2014-11-06 [0.2.1]
+	* Fix: Do not send connection parameters to url generator. Closes #2
+	* Fix: Send http headers to request object. Closes #3
+
 2014-10-31 [0.2.0]
 
 	* Adding ssl support in requests
