@@ -8,11 +8,8 @@ module ContentGateway
     end
 
     def get(resource_path, params = {})
-      timeout = params.delete :timeout
-      expires_in = params.delete :expires_in
-      stale_expires_in = params.delete :stale_expires_in
-      skip_cache = params.delete :skip_cache
-      headers = (params.delete :headers) || @default_params[:headers]
+      aux_params = remove_aux_parameters! params
+      headers = aux_params.delete :headers
 
       url = self.generate_url(resource_path, params)
 
@@ -20,35 +17,73 @@ module ContentGateway
         data = { method: :get, url: url }.tap do |h|
           h[:headers] = headers if headers.present?
         end
-        request_params = { skip_cache: skip_cache, expires_in: expires_in, stale_expires_in: stale_expires_in, timeout: timeout }.merge(params)
+
+        request_params = aux_params.merge(params)
         send_request(data, request_params)
       end
     end
 
     def post(resource_path, params = {})
-      payload = params.delete :payload
+      aux_params = remove_aux_parameters! params
+      headers = aux_params.delete :headers
+      payload = aux_params.delete :payload
+      timeout = aux_params.delete :timeout
+      ssl_certificate = aux_params.delete :ssl_certificate
+
       url = self.generate_url(resource_path, params)
 
       measure("POST - #{url}") do
-        send_request({ method: :post, url: url, payload: payload }, params)
+        data = { method: :post, url: url, payload: payload }.tap do |h|
+          h[:headers] = headers if headers.present?
+        end
+
+        request_params = { timeout: timeout }.merge(params).tap do |h|
+          h[:ssl_certificate] = ssl_certificate unless ssl_certificate.nil?
+        end
+        send_request(data, request_params)
       end
     end
 
     def put(resource_path, params = {})
-      payload = params.delete :payload
+      aux_params = remove_aux_parameters! params
+      headers = aux_params.delete :headers
+      payload = aux_params.delete :payload
+      timeout = aux_params.delete :timeout
+      ssl_certificate = aux_params.delete :ssl_certificate
+
       url = self.generate_url(resource_path, params)
 
       measure("PUT - #{url}") do
-        send_request({ method: :put, url: url, payload: payload }, params)
+        data = { method: :put, url: url, payload: payload }.tap do |h|
+          h[:headers] = headers if headers.present?
+        end
+
+        request_params = { timeout: timeout }.merge(params).tap do |h|
+          h[:ssl_certificate] = ssl_certificate unless ssl_certificate.nil?
+        end
+
+        send_request(data, request_params)
       end
     end
 
     def delete(resource_path, params = {})
-      payload = params.delete :payload
+      aux_params = remove_aux_parameters! params
+      headers = aux_params.delete :headers
+      timeout = aux_params.delete :timeout
+      ssl_certificate = aux_params.delete :ssl_certificate
+
       url = self.generate_url(resource_path, params)
 
       measure("DELETE - #{url}") do
-        send_request({ method: :delete, url: url, payload: payload }, params)
+        data = { method: :delete, url: url }.tap do |h|
+          h[:headers] = headers if headers.present?
+        end
+
+        request_params = { timeout: timeout }.tap do |h|
+          h[:ssl_certificate] = ssl_certificate unless ssl_certificate.nil?
+        end
+
+        send_request(data, request_params)
       end
     end
 
@@ -73,6 +108,22 @@ module ContentGateway
     end
 
     private
+
+    def remove_aux_parameters! params
+      aux_params = params.select do |k, v|
+        [:timeout, :expires_in, :stale_expires_in, :skip_cache, :headers, :payload, :ssl_certificate].include? k
+      end
+
+      aux_params.tap do |p|
+        p[:headers] = p[:headers] || @default_params[:headers]
+      end
+
+      params.delete_if do |k,v|
+        aux_params.keys.include? k
+      end
+
+      aux_params
+    end
 
     def send_request(request_data, params = {})
       method  = request_data[:method] || :get

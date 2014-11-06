@@ -13,10 +13,15 @@ describe ContentGateway::Gateway do
   let(:cache) { double("cache", use?: false, status: "HIT") }
   let(:request) { double("request", execute: data) }
   let(:data) { '{"param": "value"}' }
-  let(:cache_params) { { timeout: 2, expires_in: 30, stale_expires_in: 180, skip_cache: false } }
+  let(:cache_params) { { timeout: 2, expires_in: 30, stale_expires_in: 180, skip_cache: false, ssl_certificate: {ssl_client_cert: "test", ssl_client_key: "test"} } }
+  let(:connection_params) {{ timeout: 2, ssl_certificate: {ssl_client_cert: "test", ssl_client_key: "test"} }}
 
   before do
-    allow(url_generator).to receive(:generate).and_return("url")
+    allow(File).to receive(:read).with("test").and_return("cert_content")
+    allow(OpenSSL::X509::Certificate).to receive(:new).with("cert_content").and_return("cert")
+    allow(OpenSSL::PKey::RSA).to receive(:new).with("cert_content").and_return("key")
+
+    expect(url_generator).to receive(:generate).with(path, {}).and_return("url")
   end
 
   describe "GET method" do
@@ -48,11 +53,11 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:post, "url", nil, payload, config.proxy, cache_params).
+        with(:post, "url", nil, payload, config.proxy, connection_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
-        with(config, "url", :post, cache_params).
+        with(config, "url", :post, connection_params).
         and_return(cache)
     end
 
@@ -73,11 +78,11 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:put, "url", nil, payload, config.proxy, cache_params).
+        with(:put, "url", nil, payload, config.proxy, connection_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
-        with(config, "url", :put, cache_params).
+        with(config, "url", :put, connection_params).
         and_return(cache)
     end
 
@@ -98,11 +103,11 @@ describe ContentGateway::Gateway do
     before do
       expect(ContentGateway::Request).
         to receive(:new).
-        with(:delete, "url", nil, payload, config.proxy, cache_params).
+        with(:delete, "url", nil, nil, config.proxy, connection_params).
         and_return(request)
       expect(ContentGateway::Cache).
         to receive(:new).
-        with(config, "url", :delete, cache_params).
+        with(config, "url", :delete, connection_params).
         and_return(cache)
     end
 
