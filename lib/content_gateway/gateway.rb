@@ -1,6 +1,6 @@
 module ContentGateway
   class Gateway
-    def initialize(label, config, url_generator, default_params = {})
+    def initialize(label, config, url_generator = nil, default_params = {})
       @label = label
       @config = config
       @url_generator = url_generator
@@ -104,7 +104,11 @@ module ContentGateway
     end
 
     def generate_url(resource_path, params = {})
-      @url_generator.generate(resource_path, params)
+      if @url_generator.respond_to? :generate
+        @url_generator.generate(resource_path, params)
+      else
+        resource_path
+      end
     end
 
     private

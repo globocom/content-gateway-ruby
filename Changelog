@@ -1,3 +1,6 @@
+2015-01-05 [0.3.0]
+  * Optional url generator. (Without the url generator on boot the content gateway will use the get/post/delete/put resource argument as full url for request). Closes #4
+
 2014-11-06 [0.2.1]
 	* Fix: Do not send connection parameters to url generator. Closes #2
 	* Fix: Send http headers to request object. Closes #3
