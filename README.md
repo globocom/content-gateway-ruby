@@ -85,7 +85,7 @@ Optional parameters are supported:
 - `stale_expires_in`: overwrites the default stale cache expiration time
 - `skip_cache`: if set to `true`, ignores cache and stale cache
 - `headers`: a hash with request headers
-- `ssl_certificate`: a hash with ssl cert and key (see ssl support section below)
+- `ssl_certificate`: a hash with ssl cert, key, ssl version (see ssl support section below)
 
 Every other parameter is passed to URLGenerator `generate` method (like query string parameters).
 
@@ -124,6 +124,20 @@ Just pass the path of cert file (x509 certificate) and key file (rsa key) to the
 ssl = {
   ssl_client_cert: "path/client.cert",
   ssl_client_key: "path/client.key"
+}
+
+gateway.get("/path", timeout: 3, ssl_certificate: ssl)
+
+gateway.get_json("/path.json", skip_cache: true, ssl_certificate: ssl)
+
+gateway.post("/api/post_example", payload: { param1: "value" }, ssl_certificate: ssl)
+```
+
+You can use ssl_version to specify which version you need. (You can use with client cert and key or use it alone) See example below:
+
+```ruby
+ssl = {
+  ssl_version: "SSLv23"
 }
 
 gateway.get("/path", timeout: 3, ssl_certificate: ssl)

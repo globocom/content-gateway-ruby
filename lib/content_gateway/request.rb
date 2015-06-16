@@ -42,12 +42,20 @@ module ContentGateway
     private
 
     def load_ssl_params h, params
-      client_cert_file = File.read params[:ssl_certificate][:ssl_client_cert]
-      client_cert_key = File.read params[:ssl_certificate][:ssl_client_key]
+      ssl_client_cert = params[:ssl_certificate][:ssl_client_cert]
+      ssl_client_key = params[:ssl_certificate][:ssl_client_key]
+      if ssl_client_cert || ssl_client_key
+        client_cert_file = File.read ssl_client_cert
+        client_cert_key = File.read ssl_client_key
 
-      h[:ssl_client_cert] = OpenSSL::X509::Certificate.new(client_cert_file)
-      h[:ssl_client_key] = OpenSSL::PKey::RSA.new(client_cert_key)
-      h[:verify_ssl] = OpenSSL::SSL::VERIFY_NONE
+        h[:ssl_client_cert] = OpenSSL::X509::Certificate.new(client_cert_file)
+        h[:ssl_client_key] = OpenSSL::PKey::RSA.new(client_cert_key)
+        h[:verify_ssl] = OpenSSL::SSL::VERIFY_NONE
+      end
+
+      ssl_version = params[:ssl_certificate][:ssl_version]
+      h[:ssl_version] = ssl_version if ssl_version
+
       h
 
     rescue Errno::ENOENT => e0

@@ -104,12 +104,30 @@ describe ContentGateway::Request do
 
     context "requests with SSL" do
 
-      let(:ssl_certificate_params) { { ssl_client_cert: "test", ssl_client_key: "test"} }
-      let(:restclient_ssl_params) { { :ssl_client_cert=>"cert", :ssl_client_key=>"key", :verify_ssl=>0 } }
+      let(:ssl_certificate_params) { { ssl_client_cert: "test", ssl_client_key: "test", ssl_version: "SSLv23"} }
+      let(:restclient_ssl_params) { { ssl_client_cert: "cert", ssl_client_key: "key", verify_ssl: 0, ssl_version: "SSLv23" } }
       let(:request_params_ssl) { request_params.merge! restclient_ssl_params }
 
       let :subject_ssl do
         ContentGateway::Request.new(:get, "/url", {}, {}, nil, ssl_certificate: ssl_certificate_params)
+      end
+
+      context "only with ssl version" do
+        let(:ssl_certificate_params) { { ssl_version: "SSLv23" } }
+        let(:restclient_ssl_params) { { ssl_version: "SSLv23" } }
+        let(:request_params_ssl) { request_params.merge! restclient_ssl_params }
+
+        it "should setup request with ssl version" do
+          expect(RestClient::Request).to receive(:new).with(request_params_ssl)
+          subject_ssl.execute
+        end
+
+        it "should not setup ssl certificates" do
+          allow(RestClient::Request).to receive(:new).with(request_params_ssl).and_return(client)
+          expect(OpenSSL::X509::Certificate).to_not receive(:new)
+          expect(OpenSSL::PKey::RSA).to_not receive(:new)
+          subject_ssl.execute
+        end
       end
 
       context "when request is successful" do
