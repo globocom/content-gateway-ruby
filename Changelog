@@ -1,3 +1,6 @@
+2015-06-16 [0.4.0]
+  * Adding ssl_version support to ssl_certificate hash
+
 2015-01-05 [0.3.0]
   * Optional url generator. (Without the url generator on boot the content gateway will use the get/post/delete/put resource argument as full url for request). Closes #4
 
