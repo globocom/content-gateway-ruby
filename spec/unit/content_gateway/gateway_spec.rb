@@ -28,6 +28,29 @@ describe ContentGateway::Gateway do
     allow(OpenSSL::PKey::RSA).to receive(:new).with("cert_content").and_return("key")
   end
 
+  shared_examples "request" do
+    describe "doing a request" do
+      it "should do a # {verb} request passing the correct parameters" do
+        expect(subject.send(verb, path, params)).to eql data
+      end
+    end
+
+    describe "doing a json request" do
+      it "should parse the response as JSON" do
+        expect(subject.send("#{verb}_json", path, params)).to eql JSON.parse(data)
+      end
+
+      context "when the answer is not a valid JSON" do
+        let(:data) { invalid_data }
+
+        it "should raise ContentGateway::ParserError" do
+          expect { subject.send("#{verb}_json", path, params) }.
+            to raise_error(ContentGateway::ParserError)
+        end
+      end
+    end
+  end
+
   describe "Without url generator" do
     describe "GET method" do
       before do
@@ -128,27 +151,9 @@ describe ContentGateway::Gateway do
           and_return(cache)
       end
 
-      let(:params) { cache_params.merge(headers: headers) }
-
-      describe "#get" do
-        it "should do a get request passing the correct parameters" do
-          expect(subject.get(path, params)).to eql data
-        end
-      end
-
-      describe "#get_json" do
-        it "should parse the response as JSON" do
-          expect(subject.get_json(path, params)).to eql JSON.parse(data)
-        end
-
-        context "when the answer is not a valid JSON" do
-          let(:data) { invalid_data }
-
-          it "should raise ContentGateway::ParserError" do
-            expect { subject.get_json(path, params) }.
-              to raise_error(ContentGateway::ParserError)
-          end
-        end
+      it_should_behave_like "request" do
+        let(:verb) { "get" }
+        let(:params) { cache_params.merge(headers: headers) }
       end
     end
 
@@ -165,27 +170,9 @@ describe ContentGateway::Gateway do
           and_return(cache)
       end
 
-      let(:params) { cache_params.merge(payload: payload) }
-
-      describe "#post" do
-        it "should do a post request passing the correct parameters" do
-          expect(subject.post(path, params)).to eql data
-        end
-      end
-
-      describe "#post_json" do
-        it "should parse the response as JSON" do
-          expect(subject.post_json(path, params)).to eql JSON.parse(data)
-        end
-
-        context "when the answer is not a valid JSON" do
-          let(:data) { invalid_data }
-
-          it "should raise ContentGateway::ParserError" do
-            expect { subject.post_json(path, params) }.
-              to raise_error(ContentGateway::ParserError)
-          end
-        end
+      it_should_behave_like "request" do
+        let(:verb) { "post" }
+        let(:params) { cache_params.merge(payload: payload) }
       end
     end
 
@@ -202,27 +189,9 @@ describe ContentGateway::Gateway do
           and_return(cache)
       end
 
-      let(:params) { cache_params.merge(payload: payload) }
-
-      describe "#put" do
-        it "should do a put request passing the correct parameters" do
-          expect(subject.put(path, params)).to eql data
-        end
-      end
-
-      describe "#put_json" do
-        it "should parse the response as JSON" do
-          expect(subject.put_json(path, params)).to eql JSON.parse(data)
-        end
-
-        context "when the answer is not a valid JSON" do
-          let(:data) { invalid_data }
-
-          it "should raise ContentGateway::ParserError" do
-            expect { subject.put_json(path, params) }.
-              to raise_error(ContentGateway::ParserError)
-          end
-        end
+      it_should_behave_like "request" do
+        let(:verb) { "put" }
+        let(:params) { cache_params.merge(payload: payload) }
       end
     end
 
@@ -239,27 +208,9 @@ describe ContentGateway::Gateway do
           and_return(cache)
       end
 
-      let(:params) { cache_params.merge(payload: payload) }
-
-      describe "#delete" do
-        it "should do a delete request passing the correct parameters" do
-          expect(subject.delete(path, params)).to eql data
-        end
-      end
-
-      describe "#delete_json" do
-        it "should parse the response as JSON" do
-          expect(subject.delete_json(path, params)).to eql JSON.parse(data)
-        end
-
-        context "when the answer is not a valid JSON" do
-          let(:data) { invalid_data }
-
-          it "should raise ContentGateway::ParserError" do
-            expect { subject.delete_json(path, params) }.
-              to raise_error(ContentGateway::ParserError)
-          end
-        end
+      it_should_behave_like "request" do
+        let(:verb) { "delete" }
+        let(:params) { cache_params.merge(payload: payload) }
       end
     end
   end
