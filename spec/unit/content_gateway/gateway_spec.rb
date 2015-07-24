@@ -18,6 +18,7 @@ describe ContentGateway::Gateway do
   let(:cache) { double("cache", use?: false, status: "HIT") }
   let(:request) { double("request", execute: data) }
   let(:data) { '{"param": "value"}' }
+  let(:invalid_data) { "" }
   let(:cache_params) { { timeout: 2, expires_in: 30, stale_expires_in: 180, skip_cache: false, ssl_certificate: {ssl_client_cert: "test", ssl_client_key: "test"} } }
   let(:connection_params) {{ timeout: 2, ssl_certificate: {ssl_client_cert: "test", ssl_client_key: "test"} }}
 
@@ -31,13 +32,14 @@ describe ContentGateway::Gateway do
     describe "GET method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:get, fullpath, headers, nil, config.proxy, cache_params).
-        and_return(request)
+          to receive(:new).
+          with(:get, fullpath, headers, nil, config.proxy, cache_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, fullpath, :get, cache_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, fullpath, :get, cache_params).
+          and_return(cache)
       end
 
       describe "#get" do
@@ -50,13 +52,14 @@ describe ContentGateway::Gateway do
     describe "POST method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:post, fullpath, nil, payload, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:post, fullpath, nil, payload, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, fullpath, :post, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, fullpath, :post, connection_params).
+          and_return(cache)
       end
 
       describe "#post" do
@@ -69,13 +72,14 @@ describe ContentGateway::Gateway do
     describe "PUT method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:put, fullpath, nil, payload, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:put, fullpath, nil, payload, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, fullpath, :put, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, fullpath, :put, connection_params).
+          and_return(cache)
       end
 
       describe "#put" do
@@ -88,13 +92,14 @@ describe ContentGateway::Gateway do
     describe "DELETE method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:delete, fullpath, nil, nil, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:delete, fullpath, nil, nil, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, fullpath, :delete, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, fullpath, :delete, connection_params).
+          and_return(cache)
       end
 
       describe "#delete" do
@@ -107,19 +112,20 @@ describe ContentGateway::Gateway do
 
   describe "With url generator" do
     before do
-      expect(url_generator).to receive(:generate).with(path, {}).and_return("url")
+      expect(url_generator).to receive(:generate).at_least(:once).with(path, {}).and_return("url")
     end
 
     describe "GET method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:get, "url", headers, nil, config.proxy, cache_params).
-        and_return(request)
+          to receive(:new).
+          with(:get, "url", headers, nil, config.proxy, cache_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, "url", :get, cache_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, "url", :get, cache_params).
+          and_return(cache)
       end
 
       describe "#get" do
@@ -132,19 +138,29 @@ describe ContentGateway::Gateway do
         it "should parse the response as JSON" do
           expect(subject.get_json(path, cache_params.merge(headers: headers))).to eql JSON.parse(data)
         end
+
+        context "when the answer is not a valid JSON" do
+          let(:data) { invalid_data }
+
+          it "should raise ContentGateway::ParserError" do
+            expect { subject.get_json(path, cache_params.merge(headers: headers)) }.
+              to raise_error(ContentGateway::ParserError)
+          end
+        end
       end
     end
 
     describe "POST method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:post, "url", nil, payload, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:post, "url", nil, payload, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, "url", :post, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, "url", :post, connection_params).
+          and_return(cache)
       end
 
       describe "#post" do
@@ -157,19 +173,29 @@ describe ContentGateway::Gateway do
         it "should parse the response as JSON" do
           expect(subject.post_json(path, cache_params.merge(payload: payload))).to eql JSON.parse(data)
         end
+
+        context "when the answer is not a valid JSON" do
+          let(:data) { invalid_data }
+
+          it "should raise ContentGateway::ParserError" do
+            expect { subject.post_json(path, cache_params.merge(payload: payload)) }.
+              to raise_error(ContentGateway::ParserError)
+          end
+        end
       end
     end
 
     describe "PUT method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:put, "url", nil, payload, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:put, "url", nil, payload, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, "url", :put, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, "url", :put, connection_params).
+          and_return(cache)
       end
 
       describe "#put" do
@@ -182,19 +208,29 @@ describe ContentGateway::Gateway do
         it "should parse the response as JSON" do
           expect(subject.put_json(path, cache_params.merge(payload: payload))).to eql JSON.parse(data)
         end
+
+        context "when the answer is not a valid JSON" do
+          let(:data) { invalid_data }
+
+          it "should raise ContentGateway::ParserError" do
+            expect { subject.put_json(path, cache_params.merge(payload: payload)) }.
+              to raise_error(ContentGateway::ParserError)
+          end
+        end
       end
     end
 
     describe "DELETE method" do
       before do
         expect(ContentGateway::Request).
-        to receive(:new).
-        with(:delete, "url", nil, nil, config.proxy, connection_params).
-        and_return(request)
+          to receive(:new).
+          with(:delete, "url", nil, nil, config.proxy, connection_params).
+          and_return(request)
+
         expect(ContentGateway::Cache).
-        to receive(:new).
-        with(config, "url", :delete, connection_params).
-        and_return(cache)
+          to receive(:new).
+          with(config, "url", :delete, connection_params).
+          and_return(cache)
       end
 
       describe "#delete" do
@@ -206,6 +242,15 @@ describe ContentGateway::Gateway do
       describe "#delete_json" do
         it "should parse the response as JSON" do
           expect(subject.delete_json(path, cache_params.merge(payload: payload))).to eql JSON.parse(data)
+        end
+
+        context "when the answer is not a valid JSON" do
+          let(:data) { invalid_data }
+
+          it "should raise ContentGateway::ParserError" do
+            expect { subject.delete_json(path, cache_params.merge(payload: payload)) }.
+              to raise_error(ContentGateway::ParserError)
+          end
         end
       end
     end

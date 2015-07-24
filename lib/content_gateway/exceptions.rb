@@ -81,5 +81,7 @@ module ContentGateway
     end
   end
 
+  class ParserError < BaseError; end
+
   class StaleCacheNotAvailableError < StandardError; end
 end

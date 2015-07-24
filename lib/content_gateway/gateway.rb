@@ -89,18 +89,30 @@ module ContentGateway
 
     def get_json(resource_path, params = {})
       JSON.parse get(resource_path, params)
+    rescue JSON::ParserError => e
+      url = generate_url(resource_path, params) rescue resource_path
+      raise ContentGateway::ParserError.new(url, e)
     end
 
     def post_json(resource_path, params = {})
       JSON.parse post(resource_path, params)
+    rescue JSON::ParserError => e
+      url = generate_url(resource_path, params) rescue resource_path
+      raise ContentGateway::ParserError.new(url, e)
     end
 
     def put_json(resource_path, params = {})
       JSON.parse put(resource_path, params)
+    rescue JSON::ParserError => e
+      url = generate_url(resource_path, params) rescue resource_path
+      raise ContentGateway::ParserError.new(url, e)
     end
 
     def delete_json(resource_path, params = {})
       JSON.parse delete(resource_path, params)
+    rescue JSON::ParserError => e
+      url = generate_url(resource_path, params) rescue resource_path
+      raise ContentGateway::ParserError.new(url, e)
     end
 
     def generate_url(resource_path, params = {})
@@ -156,6 +168,9 @@ module ContentGateway
       else
         @request.execute
       end
+    end
+
+    def do_json_request()
     end
 
     def measure(message)
