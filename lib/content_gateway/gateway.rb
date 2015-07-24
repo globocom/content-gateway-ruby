@@ -88,31 +88,19 @@ module ContentGateway
     end
 
     def get_json(resource_path, params = {})
-      JSON.parse get(resource_path, params)
-    rescue JSON::ParserError => e
-      url = generate_url(resource_path, params) rescue resource_path
-      raise ContentGateway::ParserError.new(url, e)
+      json_request(:get, resource_path, params)
     end
 
     def post_json(resource_path, params = {})
-      JSON.parse post(resource_path, params)
-    rescue JSON::ParserError => e
-      url = generate_url(resource_path, params) rescue resource_path
-      raise ContentGateway::ParserError.new(url, e)
+      json_request(:post, resource_path, params)
     end
 
     def put_json(resource_path, params = {})
-      JSON.parse put(resource_path, params)
-    rescue JSON::ParserError => e
-      url = generate_url(resource_path, params) rescue resource_path
-      raise ContentGateway::ParserError.new(url, e)
+      json_request(:put, resource_path, params)
     end
 
     def delete_json(resource_path, params = {})
-      JSON.parse delete(resource_path, params)
-    rescue JSON::ParserError => e
-      url = generate_url(resource_path, params) rescue resource_path
-      raise ContentGateway::ParserError.new(url, e)
+      json_request(:delete, resource_path, params)
     end
 
     def generate_url(resource_path, params = {})
@@ -170,7 +158,11 @@ module ContentGateway
       end
     end
 
-    def do_json_request()
+    def json_request(verb, resource_path, params = {})
+      JSON.parse(self.send(verb, resource_path, params))
+    rescue JSON::ParserError => e
+      url = generate_url(resource_path, params) rescue resource_path
+      raise ContentGateway::ParserError.new(url, e)
     end
 
     def measure(message)
