@@ -149,6 +149,30 @@ describe ContentGateway::Gateway do
             it "should serve stale" do
               expect(gateway.get(resource_path)).to eql "cached response"
             end
+
+            context "when stale_on_error configuration is true" do
+              let :gateway do
+                config_with_stale_on_error = config.dup
+                config_with_stale_on_error.stale_on_error = true
+                ContentGateway::Gateway.new "API XPTO", config_with_stale_on_error, url_generator, headers: headers
+              end
+
+              it "should serve stale" do
+                expect(gateway.get(resource_path)).to eql "cached response"
+              end
+            end
+
+            context "when stale_on_error configuration is false" do
+              let :gateway do
+                config_with_stale_on_error = config.dup
+                config_with_stale_on_error.stale_on_error = false
+                ContentGateway::Gateway.new "API XPTO", config_with_stale_on_error, url_generator, headers: headers
+              end
+
+              it "should raise error" do
+                expect { gateway.get resource_path }.to raise_error ContentGateway::ServerError
+              end
+            end
           end
         end
       end
