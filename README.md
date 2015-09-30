@@ -33,6 +33,7 @@ Or install it yourself as:
 - `timeout`: request timeout in seconds
 - `cache_expires_in`: cache data expiration time, in seconds
 - `cache_stale_expires_in`: stale cache data expiration time, in seconds
+- `stale_on_error`: if `true`, returns value from cache stale (if available) after a server error. Default value: `true`
 - `cache`: cache store instance. This may be an instance of `ActiveSupport::Cache`
 - `proxy`: proxy address, if needed
 
@@ -43,6 +44,7 @@ config = OpenStruct.new(
   timeout: 2,
   cache_expires_in: 1800,
   cache_stale_expires_in: 86400,
+  stale_on_error: false,
   cache: ActiveSupport::Cache.lookup_store(:memory_store),
   proxy: "http://proxy.example.com/"
 )
