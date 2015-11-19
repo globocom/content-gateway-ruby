@@ -46,7 +46,7 @@ config = OpenStruct.new(
   cache_stale_expires_in: 86400,
   stale_on_error: false,
   cache: ActiveSupport::Cache.lookup_store(:memory_store),
-  proxy: "http://proxy.example.com/"
+  proxy: "http://proxy.example.com:3128"
 )
 ```
 
@@ -169,4 +169,4 @@ gateway.post("/api/post_example", payload: { param1: "value" }, ssl_certificate:
 
 ## License
 
-Copyright (c) 2014 Globo.com - Webmedia. See [LICENSE.txt](https://github.com/globocom/content-gateway-ruby/blob/master/LICENSE.txt) for more details.
+Copyright (c) 2015 Globo.com - Webmedia. See [LICENSE.txt](https://github.com/globocom/content-gateway-ruby/blob/master/LICENSE.txt) for more details.

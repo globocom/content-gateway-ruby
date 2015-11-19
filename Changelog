@@ -1,3 +1,7 @@
+2015-11-19 [0.5.1]
+
+  * Bugfix proxy implementation wrapper on rest-client
+
 2015-07-24 [0.5.0]
 
   * Mapping JSON parse errors to ContentGateway::ParserError
