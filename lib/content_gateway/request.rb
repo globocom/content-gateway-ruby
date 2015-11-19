@@ -6,16 +6,12 @@ module ContentGateway
         h[:headers] = headers if headers.present?
         h = load_ssl_params(h, params) if params.has_key?(:ssl_certificate)
       end
-      RestClient.proxy = proxy if proxy.present?
+      RestClient.proxy = proxy
       @client = RestClient::Request.new(data)
     end
 
     def execute
-      data = @client.execute
-
-      RestClient.proxy = nil
-
-      data
+      @client.execute
 
     rescue RestClient::ResourceNotFound => e1
       raise ContentGateway::ResourceNotFound.new url, e1
