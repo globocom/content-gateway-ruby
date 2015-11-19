@@ -171,5 +171,17 @@ describe ContentGateway::Request do
         end
       end
     end
+
+    context "when proxy is used" do
+      let(:proxy) { 'http://proxy.test:3128' }
+      subject { ContentGateway::Request.new(:get, "/url", {}, {}, proxy) }
+      let(:request_params) { { method: :get, url: "/url", proxy: proxy } }
+
+      it "should set proxy on RestClient" do
+        expect(subject.execute).to eql "data"
+        expect(RestClient.proxy).to eql(proxy)
+      end
+    end
+
   end
 end
