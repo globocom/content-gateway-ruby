@@ -62,7 +62,7 @@ module ContentGateway
     private
     def config_stale_on_error params, config
       return params[:stale_on_error] unless params[:stale_on_error].nil?
-      return config.stale_on_error unless config.try(:stale_on_error).nil?
+      return @config.stale_on_error unless @config.stale_on_error.nil?
       true
     end
   end
