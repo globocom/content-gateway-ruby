@@ -1,6 +1,7 @@
 # Content Gateway
 
 [![Build Status](https://travis-ci.org/globocom/content-gateway-ruby.svg)](https://travis-ci.org/globocom/content-gateway-ruby)
+[![Coverage Status](https://coveralls.io/repos/github/globocom/content-gateway-ruby/badge.svg?branch=master)](https://coveralls.io/github/globocom/content-gateway-ruby?branch=master)
 
 An easy way to get external content with two cache levels. The first is a performance cache and second is the stale.
 
