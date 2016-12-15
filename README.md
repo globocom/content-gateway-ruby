@@ -1,5 +1,7 @@
 # Content Gateway
 
+[![Build Status](https://travis-ci.org/globocom/content-gateway-ruby.svg)](https://travis-ci.org/globocom/content-gateway-ruby)
+
 An easy way to get external content with two cache levels. The first is a performance cache and second is the stale.
 
 Content Gateway lets you set a timeout for any request.
@@ -169,4 +171,4 @@ gateway.post("/api/post_example", payload: { param1: "value" }, ssl_certificate:
 
 ## License
 
-Copyright (c) 2015 Globo.com - Webmedia. See [LICENSE.txt](https://github.com/globocom/content-gateway-ruby/blob/master/LICENSE.txt) for more details.
+Copyright (c) 2016 Globo.com - Webmedia. See [LICENSE.txt](https://github.com/globocom/content-gateway-ruby/blob/master/LICENSE.txt) for more details.
