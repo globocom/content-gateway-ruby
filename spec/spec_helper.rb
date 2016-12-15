@@ -2,6 +2,9 @@ ENV['RACK_ENV'] = 'test'
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
+require 'coveralls'
+Coveralls.wear!
+
 require 'byebug'
 require 'rspec'
 require 'content_gateway'
