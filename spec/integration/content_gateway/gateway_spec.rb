@@ -159,7 +159,7 @@ describe ContentGateway::Gateway do
               config.cache = cache_store
             end
 
-            context "give a config without stale_on_error"
+            context "give a config without stale_on_error" do
               context "uses the default value" do
                 it "returns cached stale" do
                   expect(gateway.get(resource_path)).to eql "cached response"
