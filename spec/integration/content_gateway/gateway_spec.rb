@@ -8,11 +8,24 @@ describe ContentGateway::Gateway do
   end
 
   let! :config do
-    OpenStruct.new(
+    class FakeConfig
+      attr_accessor :cache, :cache_expires_in, :cache_stale_expires_in, :proxy, :timeout
+
+      def initialize(params)
+        @cache = params[:cache]
+        @cache_expires_in = params[:cache_expires_in]
+        @cache_stale_expires_in = params[:cache_stale_expires_in]
+        @proxy = params[:proxy]
+        @timeout = params[:timeout]
+      end
+    end
+
+    FakeConfig.new(
       cache: ActiveSupport::Cache::NullStore.new,
       cache_expires_in: 15.minutes,
       cache_stale_expires_in: 1.hour,
-      proxy: "proxy"
+      proxy: "proxy",
+      timeout: 2
     )
   end
 
@@ -123,9 +136,10 @@ describe ContentGateway::Gateway do
         end
 
         context "with stale cache" do
+          let(:cache_store) {double("cache_store")}
+
           context "on timeout" do
             before do
-              cache_store = double("cache_store")
               allow(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_raise(Timeout::Error)
               allow(cache_store).to receive(:read).with(stale_cache_key).and_return(cached_response)
               config.cache = cache_store
@@ -140,36 +154,27 @@ describe ContentGateway::Gateway do
             before do
               stub_request_with_error({method: :get, url: resource_url, proxy: config.proxy, headers: headers}, RestClient::InternalServerError.new(nil, 500))
 
-              cache_store = double("cache_store")
               allow(cache_store).to receive(:fetch).with(resource_url, expires_in: default_expires_in).and_yield
               allow(cache_store).to receive(:read).with(stale_cache_key).and_return(cached_response)
               config.cache = cache_store
             end
 
-            it "should serve stale" do
-              expect(gateway.get(resource_path)).to eql "cached response"
-            end
-
-            context "when stale_on_error configuration is true" do
-              let :gateway do
-                config_with_stale_on_error = config.dup
-                config_with_stale_on_error.stale_on_error = true
-                ContentGateway::Gateway.new "API XPTO", config_with_stale_on_error, url_generator, headers: headers
-              end
-
-              it "should serve stale" do
-                expect(gateway.get(resource_path)).to eql "cached response"
+            context "give a config without stale_on_error" do
+              context "uses the default value" do
+                it "returns cached stale" do
+                  expect(gateway.get(resource_path)).to eql "cached response"
+                end
               end
             end
 
             context "when stale_on_error configuration is false" do
               let :gateway do
                 config_with_stale_on_error = config.dup
-                config_with_stale_on_error.stale_on_error = false
+                allow(config_with_stale_on_error).to receive(:stale_on_error).and_return(false)
                 ContentGateway::Gateway.new "API XPTO", config_with_stale_on_error, url_generator, headers: headers
               end
 
-              it "should raise error" do
+              it "raises error" do
                 expect { gateway.get resource_path }.to raise_error ContentGateway::ServerError
               end
             end
