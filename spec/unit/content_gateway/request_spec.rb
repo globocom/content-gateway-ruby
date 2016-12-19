@@ -156,7 +156,7 @@ describe ContentGateway::Request do
 
       context "when request fails" do
         it "should return ssl failure error if certificate was not found" do
-          expect { subject_ssl.execute }.to raise_error(ContentGateway::OpenSSLFailure).with_message("/url - No such file or directory - test")
+          expect { subject_ssl.execute }.to raise_error(ContentGateway::OpenSSLFailure).with_message(/^\/url - No such file or directory/)
         end
 
         it "should return ssl failure error if certificate cert was not valid" do
