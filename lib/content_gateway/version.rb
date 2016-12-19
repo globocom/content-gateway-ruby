@@ -1,3 +1,3 @@
 module ContentGateway
-  VERSION = "0.5.3"
+  VERSION = "0.5.2"
 end

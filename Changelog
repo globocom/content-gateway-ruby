@@ -1,10 +1,7 @@
-2016-12-16 [0.5.3]
-
-  * Typo on gateway_spec.rb
-
-2016-11-07 [0.5.2]
+2016-12-19 [0.5.2]
 
   * Bugfix: Now stale_on_error returns true if theres no config
+  * Add default url generator
 
 2015-11-19 [0.5.1]
 
