@@ -59,13 +59,12 @@ config = OpenStruct.new(
 
 - a label, which is used in the log messages
 - a config object, just as described above
-- an URL Generator object. This may be any object that responds to a `generate` method, like this:
-- an optional hash with default params. Currently, it only supports default headers
+- (optional) an URL Generator object. This may be any object that responds to a `generate` method, like this:
+- (optional) a hash with default params. Currently, it only supports default headers
 
 ```ruby
 class UrlGenerator
   def generate(resource_path, params = {})
-    args = ""
     args = "?#{params.map {|k, v| "#{k}=#{v}"}.join("&")}" if params.any?
     "http://example.com/#{resource_path}#{args}"
   end
@@ -76,7 +75,7 @@ default_params = { headers: { Accept: "application/json" } }
 gateway = ContentGateway::Gateway.new("My API", config, UrlGenerator.new, default_params)
 ```
 
-Every param may be overrided on each request.
+If ommited, the default URL Generator adds the method call params as query string parameters. Every param may be overrided on each request.
 
 This Gateway object supports the following methods:
 

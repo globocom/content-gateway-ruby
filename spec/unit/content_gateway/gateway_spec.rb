@@ -53,21 +53,23 @@ describe ContentGateway::Gateway do
 
   describe "Without url generator" do
     describe "GET method" do
+      let(:query_string) { { a: 1, b: 2 } }
+
       before do
         expect(ContentGateway::Request).
           to receive(:new).
-          with(:get, fullpath, headers, nil, config.proxy, cache_params).
+          with(:get, fullpath, headers, nil, config.proxy, cache_params.merge(query_string)).
           and_return(request)
 
         expect(ContentGateway::Cache).
           to receive(:new).
-          with(config, fullpath, :get, cache_params).
+          with(config, fullpath, :get, cache_params.merge(query_string)).
           and_return(cache)
       end
 
       describe "#get" do
         it "should do a get request passing the correct parameters" do
-          expect(gateway_without_url_generator.get(fullpath, cache_params.merge(headers: headers))).to eql data
+          expect(gateway_without_url_generator.get(fullpath, cache_params.merge(query_string).merge(headers: headers))).to eql data
         end
       end
     end

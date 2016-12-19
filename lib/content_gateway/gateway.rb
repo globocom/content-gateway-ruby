@@ -3,7 +3,7 @@ module ContentGateway
     def initialize(label, config, url_generator = nil, default_params = {})
       @label = label
       @config = config
-      @url_generator = url_generator
+      @url_generator = url_generator || DefaultUrlGenerator
       @default_params = default_params
     end
 
@@ -211,6 +211,13 @@ module ContentGateway
           log
         end
       end.yield
+    end
+
+    class DefaultUrlGenerator
+      def generate(resource_path, params = {})
+        args = "?#{params.map {|k, v| "#{k}=#{v}"}.join("&")}" if params.any?
+        "#{resource_path}#{args}"
+      end
     end
   end
 end
