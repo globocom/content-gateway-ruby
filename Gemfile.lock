@@ -76,7 +76,7 @@ GEM
     unf_ext (0.0.8)
 
 PLATFORMS
-  x86_64-darwin-20
+  ruby
 
 DEPENDENCIES
   byebug
