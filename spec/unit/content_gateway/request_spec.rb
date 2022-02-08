@@ -11,7 +11,7 @@ describe ContentGateway::Request do
 
   let(:client) { double("rest client", execute: "data", url: "/url") }
 
-  let(:request_params) { { method: :get, url: "/url", proxy: :none } }
+  let(:request_params) { { method: :get, url: "/url", proxy: nil } }
 
   describe "#execute" do
     context "when request is successful" do
