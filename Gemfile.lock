@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    content_gateway (0.5.2)
+    content_gateway (0.6.0.pre.rc)
       activesupport (>= 3)
       json (~> 1.0)
       rest-client (~> 2.1)
