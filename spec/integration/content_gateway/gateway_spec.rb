@@ -417,7 +417,7 @@ describe ContentGateway::Gateway do
   private
 
   def stub_request(opts, payload = {}, &block)
-    opts = { method: :get, proxy: :none }.merge(opts)
+    opts = { method: :get, proxy: nil }.merge(opts)
     request = RestClient::Request.new(opts)
     allow(RestClient::Request).to receive(:new).with(opts).and_return(request)
 
@@ -429,7 +429,7 @@ describe ContentGateway::Gateway do
   end
 
   def stub_request_with_error(opts, exc)
-    opts = { method: :get, proxy: :none }.merge(opts)
+    opts = { method: :get, proxy: nil }.merge(opts)
 
     request = RestClient::Request.new(opts)
     allow(RestClient::Request).to receive(:new).with(opts).and_return(request)

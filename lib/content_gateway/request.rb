@@ -1,7 +1,7 @@
 module ContentGateway
   class Request
     def initialize(method, url, headers = {}, payload = {}, proxy = nil, params = {})
-      data = { method: method, url: url, proxy: proxy || :none }.tap do |h|
+      data = { method: method, url: url, proxy: proxy }.tap do |h|
         h[:payload] = payload if payload.present?
         h[:headers] = headers if headers.present?
         h = load_ssl_params(h, params) if params.has_key?(:ssl_certificate)
@@ -11,8 +11,7 @@ module ContentGateway
     end
 
     def execute
-      @client.execute
-
+      @client.execute.to_s
     rescue RestClient::ResourceNotFound => e1
       raise ContentGateway::ResourceNotFound.new url, e1
 

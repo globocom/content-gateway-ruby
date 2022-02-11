@@ -1,3 +1,7 @@
+2022-02-11 [0.6.0]
+
+  * Bugfix: Updated the rest-client gem from 1.0 to 2.1 to fix memory leak issues caused by the old version
+
 2016-12-19 [0.5.2]
 
   * Bugfix: Now stale_on_error returns true if theres no config
